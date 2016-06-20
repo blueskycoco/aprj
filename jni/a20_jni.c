@@ -244,7 +244,7 @@ static JNINativeMethod gMethods[] = {
 static int register_android_realarm_test(JNIEnv *env)  
 {  
    	jclass clazz;
-    static const char* const kClassName =  "a20/hardware/HardwareControl";
+    static const char* const kClassName =  "com/example/a20_prj/HardwareControl";
 
     clazz = (*env)->FindClass(env, kClassName);
     if (clazz == NULL) {
