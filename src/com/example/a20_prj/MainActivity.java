@@ -6,15 +6,19 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -29,7 +33,20 @@ public class MainActivity extends Activity {
 	Button	btnStop;
 	Button	btnJiguang;
 	Button	btnXianzhen;
+	EditText editJifen;
+	EditText editGonglv;
 	ImageView imageviewdianchi;
+	static boolean jiguang_flag=false;
+	static boolean xianzhen_flag=true;
+	Context g_ctx=null;
+	byte[] cmd_check_fpga=	{(byte) 0xaa,0x55,0x00,0x00,(byte) 0xff,0x00,0x0d};
+	byte[] cmd_jifen=		{(byte) 0xaa,0x01,0x00,0x00,0x00,0x00,0x0d};
+	byte[] cmd_danci=		{(byte) 0xaa,0x02,0x00,0x00,(byte) 0xac,0x00,0x0d};
+	byte[] cmd_duoci=		{(byte) 0xaa,0x03,0x00,0x00,(byte) 0xad,0x00,0x0d};
+	byte[] cmd_stop=		{(byte) 0xaa,0x04,0x00,0x00,(byte) 0xae,0x00,0x0d};
+	byte[] cmd_jiguang=		{(byte) 0xaa,0x05,0x00,0x00,0x00,0x00,0x0d};
+	byte[] cmd_gonglv=		{(byte) 0xaa,0x07,0x00,0x00,(byte) 0xac,0x00,0x0d};
+	byte[] cmd_xianzhen=	{(byte) 0xaa,0x08,0x00,0x00,(byte) 0xac,0x00,0x0d};
 	private final Handler handler = new Handler();
 	private final Runnable task = new Runnable() {
 
@@ -45,7 +62,7 @@ public class MainActivity extends Activity {
 				float level2=0;
 				level2=(float)HardwareControl.getBattery();
 				level=(int) ((level2/max)*((float)100));
-				Log.i("20_prj", "Battery "+level2+"Level "+level);
+				//Log.i("20_prj", "Battery "+level2+"Level "+level);
 				if (20 > level) {
 					imageviewdianchi.setBackground(getResources().getDrawable(
 							R.drawable.batt0));
@@ -74,6 +91,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		g_ctx=(Context)this;
 		Init();
 	}
 
@@ -95,6 +113,7 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+	
 	private class TestThread extends Thread {
 
 		@Override
@@ -163,7 +182,44 @@ public class MainActivity extends Activity {
         runOnUiThread(new Runnable() {
                 public void run() {
                 		String ret=byte2HexStr(buffer,size);
-						Log.i("485",size + "==>"+ret);						
+						Log.i("485",size + "==>"+ret);
+						if(buffer[0]==0xaa && buffer[1]==0x0d)
+						{
+							if((buffer[0]+buffer[1]+buffer[2]+buffer[3]*256) == (buffer[4]+buffer[5]*256))
+							{
+								switch(buffer[1])
+								{
+									case 0x01:
+										Log.i("RCV", "Jifen Time");
+										break;
+									case 0x02:
+										Log.i("RCV", "Dan ci");
+										break;
+									case 0x03:
+										Log.i("RCV", "Duo ci");
+										break;
+									case 0x04:
+										Log.i("RCV", "Stop");
+										break;
+									case 0x05:
+										Log.i("RCV", "K/G jiguang");
+										break;
+									case 0x07:
+										Log.i("RCV", "Jiguang GL");
+										break;
+									case 0x08:
+										Log.i("RCV", "XianZhen/MianZhen");
+										break;
+									default:
+										Log.i("RCV", "Unknown");
+										break;
+								}
+							}
+							else
+								Log.i("20_prj", "CRC error");
+						}
+						else
+							Log.i("20_prj", "invalid packet "+ret);
                 }
         });
 	}
@@ -178,12 +234,24 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 	}
+	void send_cmd(byte[] cmd)
+	{
+		try {
+			cmd[4]=(byte) ((cmd[0]+cmd[1]+cmd[2]+cmd[3]*256)&0xff);
+			cmd[5]=(byte) (((cmd[0]+cmd[1]+cmd[2]+cmd[3]*256)>>8)&0xff);
+			mOutputStream.write(cmd);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
 	public void setButtonDanci() {
 		btnDanci.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
 				Log.i("20_prj","btnDanci");
+				send_cmd(cmd_danci);
 			}
 		});
 	}
@@ -193,6 +261,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("20_prj","btnDuoci");
+				send_cmd(cmd_duoci);
 			}
 		});
 	}
@@ -202,6 +271,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("20_prj","btnStop");
+				send_cmd(cmd_stop);
 			}
 		});
 	}
@@ -211,6 +281,19 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("20_prj","btnJiguang");
+				if(jiguang_flag)
+				{
+					btnJiguang.setText(g_ctx.getString(R.string.jiguangk));
+					jiguang_flag=false;
+					cmd_jiguang[2]=0x00;
+				}
+				else
+				{
+					btnJiguang.setText(g_ctx.getString(R.string.jiguangg));
+					jiguang_flag=true;
+					cmd_jiguang[2]=0x01;
+				}
+				send_cmd(cmd_jiguang);
 			}
 		});
 	}
@@ -220,6 +303,19 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("20_prj","btnXianzhen");
+				if(xianzhen_flag)
+				{
+					btnXianzhen.setText(g_ctx.getString(R.string.mianzhen));
+					xianzhen_flag=false;
+					cmd_xianzhen[2]=0x01;
+				}
+				else
+				{
+					btnXianzhen.setText(g_ctx.getString(R.string.xianzhen));
+					xianzhen_flag=true;
+					cmd_xianzhen[2]=0x00;
+				}
+				send_cmd(cmd_xianzhen);
 			}
 		});
 	}
@@ -232,6 +328,52 @@ public class MainActivity extends Activity {
 		btnStop =(Button)findViewById(R.id.Bstop);
 		btnJiguang =(Button)findViewById(R.id.Bjiguang);
 		btnXianzhen =(Button)findViewById(R.id.Bxianzhen);
+		editJifen=(EditText)findViewById(R.id.Tjifentime);
+		editGonglv=(EditText)findViewById(R.id.Tgonglv);
+		/*
+		editJifen.addTextChangedListener(new TextWatcher() {
+			public void afterTextChanged(Editable s) {//输入数据之后监听
+
+				Log.i("20_prj", "Send cmd jifen");
+				cmd_jifen[2]=(byte) (Integer.parseInt(editJifen.getText().toString())&0xff);
+				cmd_jifen[3]=(byte) ((Integer.parseInt(editJifen.getText().toString())>>8)&0xff);
+				send_cmd(cmd_jifen);
+				}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				// TODO Auto-generated method stub
+			}
+		 	}
+				);
+		editGonglv=(EditText)findViewById(R.id.Tgonglv);
+		editGonglv.addTextChangedListener(new TextWatcher() {
+			public void afterTextChanged(Editable s) {//输入数据之后监听
+
+				Log.i("20_prj", "Send cmd gonglv");
+				cmd_gonglv[2]=(byte) (Integer.parseInt(editGonglv.getText().toString())&0xff);
+				cmd_gonglv[3]=(byte) ((Integer.parseInt(editGonglv.getText().toString())>>8)&0xff);
+				send_cmd(cmd_gonglv);
+				}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				// TODO Auto-generated method stub
+				}
+		 	}
+				);*/
 		setButtonDanci();
 		setButtonDuoci();
 		setButtonStop();
@@ -244,6 +386,6 @@ public class MainActivity extends Activity {
 		mReadThread = new ReadThread();
 		mReadThread.start();
 		handler.postDelayed(task, 1000);
-		new TestThread().start();
+		//new TestThread().start();
 	}
 }

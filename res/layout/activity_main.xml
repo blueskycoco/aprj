@@ -123,7 +123,7 @@
             android:layout_alignParentLeft="true"
             android:layout_below="@+id/Bstop"
             style="@style/Button"
-            android:text="@string/jiguang" />
+            android:text="@string/jiguangk" />
 		<TextView
             android:id="@+id/Vgonglv"
             style="@style/TextView"
