@@ -18,6 +18,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		Init();
 	}
 
 	@Override
@@ -38,7 +39,22 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
+	private class TestThread extends Thread {
+
+		@Override
+		public void run() {
+			super.run();
+			while (!isInterrupted()) {
+				send_485();
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 	private class ReadThread extends Thread {
 
 		@Override
@@ -100,6 +116,8 @@ public class MainActivity extends Activity {
 		byte[] cmd={0x24,0x32,(byte)0xff,0x23,0x0a};
 		try {
 			mOutputStream.write(cmd);
+			Log.i("20_prj", "Battery "+HardwareControl.getBattery());
+			Log.i("20_prj", "Spi "+String.valueOf(HardwareControl.wrSPI(cmd)));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -112,5 +130,6 @@ public class MainActivity extends Activity {
 		mOutputStream = HardwareControl.getOutputStream();
 		mReadThread = new ReadThread();
 		mReadThread.start();
+		new TestThread().start();
 	}
 }

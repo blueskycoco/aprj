@@ -54,9 +54,9 @@ struct spi_ioc_transfer {
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
-#define I2C_DEVICE_NAME		"/dev/i2c-4"
-#define SPI_DEVICE_NAME		"/dev/spi0.0"
-#define TTY_DEVICE_NAME		"/dev/ttyS2"
+#define I2C_DEVICE_NAME		"/dev/i2c-3"
+#define SPI_DEVICE_NAME		"/dev/spidev0.0"
+#define TTY_DEVICE_NAME		"/dev/ttyS1"
 
 int serialfd=-1;
 JNIEXPORT jobject Java_OpenSerialPort
@@ -121,7 +121,9 @@ JNIEXPORT jint JNICALL Java_Battery
 	{
 		LOGE("I2C open error");
 		return 1;	
-	}	
+	}
+	//else
+	//	LOGE("I2C open %s ok",I2C_DEVICE_NAME);
 	if (ioctl(fd, I2C_SLAVE, addr) < 0)
 	{
 		LOGE("I2C_SLAVE error");
@@ -154,12 +156,13 @@ JNIEXPORT jint JNICALL Java_Battery
 static void pabort(const char *s)
 {
 	perror(s);
-	exit(-1);
+	//exit(-1);
 }
 JNIEXPORT jbyteArray JNICALL Java_SPI
 	(JNIEnv *env, jobject thiz,jbyteArray send_buf)
 {
 	int ret = 0;
+	int i=0;
 	uint8_t mode=SPI_CPHA|SPI_CPOL;
 	uint8_t mode_ori=0;
 	uint8_t bits = 8;
@@ -170,23 +173,35 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 	jsize  oldsize = (*env)->GetArrayLength(env,send_buf); 
 	unsigned char * bytesend = (unsigned char *)olddata;
 	int send_len = (int)oldsize;
+	LOGD("send_len %d",send_len);
+	for(i=0;i<send_len;i++)
+		LOGD("%x",bytesend[i]);
 	unsigned char * bytercv = (unsigned char *)malloc(send_len*sizeof(unsigned char));
 	memset(bytercv,0,send_len);
 	
 	int fd = open(SPI_DEVICE_NAME, O_RDWR);
 	if (fd < 0)
-		pabort("can't open device");
+	{
+		LOGD("can't open device");
+		return NULL;
+	}
 
 	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
 	if (ret == -1)
-		pabort("can't get spi mode");
+	{
+		LOGD("can't get spi mode");
+		return NULL;
+	}
 	else
 	{
 		if(mode!=mode_ori)
 		{
 			ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
 			if (ret == -1)
-				pabort("can't set spi mode");
+			{
+				LOGD("can't set spi mode");
+				return NULL;
+			}
 		}
 	}
 
@@ -201,7 +216,10 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 
 	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
 	if (ret < 1)
-		pabort("can't send spi message");
+	{
+		LOGD("can't send spi message");
+		return NULL;
+	}
 	close(fd);
 	jbyte *by = (jbyte*)bytercv; 
 	jbyteArray jarray = (*env)->NewByteArray(env,send_len); 
@@ -235,7 +253,7 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 }
 
 static JNINativeMethod gMethods[] = {  
-	{"wrSPI", "(b[)b[", (void *)Java_SPI}, 
+	{"wrSPI", "([B)[B", (void *)Java_SPI}, 
 	{"getBattery", "()I", (void *)Java_Battery},
 	{"closeSerial", "()V", (void *)Java_CloseSerialPort},
 	{"openSerial", "()Ljava/io/FileDescriptor;", (void *)Java_OpenSerialPort}
