@@ -4,5 +4,12 @@
     <string name="app_name">a20_prj</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-
+    <string name="jifentime">积分时间</string>
+    <string name="danci">单次采谱</string>
+    <string name="duoci">连续采谱</string>
+    <string name="stop">停止采谱</string>
+    <string name="jiguang">开/光激光</string>
+    <string name="gonglv">激光功率设置</string>
+    <string name="xianzhen">线阵/面阵</string>
+    <string name="power">电池电量:</string>
 </resources>

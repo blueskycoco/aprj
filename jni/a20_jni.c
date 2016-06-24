@@ -130,7 +130,7 @@ JNIEXPORT jint JNICALL Java_Battery
 		exit(1);
 	}
 	write(fd, config, 1);
-	sleep(1);
+	//sleep(1);
 
 	char data[2]={0};
 	if(read(fd, data, 2) != 2)
@@ -147,7 +147,7 @@ JNIEXPORT jint JNICALL Java_Battery
 		}
 
 		// Output data to screen
-		LOGD("Digital value of analog input: %d \n", level);
+		//LOGD("Digital value of analog input: %d \n", level);
 	}
 
 	close(fd);
@@ -173,9 +173,9 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 	jsize  oldsize = (*env)->GetArrayLength(env,send_buf); 
 	unsigned char * bytesend = (unsigned char *)olddata;
 	int send_len = (int)oldsize;
-	LOGD("send_len %d",send_len);
-	for(i=0;i<send_len;i++)
-		LOGD("%x",bytesend[i]);
+	//LOGD("send_len %d",send_len);
+	//for(i=0;i<send_len;i++)
+	//	LOGD("%x",bytesend[i]);
 	unsigned char * bytercv = (unsigned char *)malloc(send_len*sizeof(unsigned char));
 	memset(bytercv,0,send_len);
 	

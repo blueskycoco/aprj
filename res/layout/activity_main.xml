@@ -1,16 +1,161 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/background"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.a20_prj.MainActivity" >
 
-    <TextView
+    <RelativeLayout
+        android:id="@+id/Rdraw"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="140dp"
+        android:layout_marginLeft="90dp">
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/Rtime"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true">
+        <TextView
+            android:id="@+id/date"
+            style="@style/TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+        	android:layout_alignParentTop="true"
+            android:text=""
+            android:textSize="25dp"/>
+        <TextView
+            android:id="@+id/time"
+            style="@style/TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_alignParentTop="true"
+            android:text=""
+            android:textSize="25dp" />
+		<TextView
+            android:id="@+id/power"
+            style="@style/TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="760dp"
+            android:layout_alignParentTop="true"
+            android:text="@string/power"
+            android:textSize="25dp" />
+        <ImageView
+            android:id="@+id/imageviewpower"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp"  />
+
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/Rfunction"
+        android:layout_width="140dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="80dp"
+        android:layout_alignParentRight="true">       
+
+        <TextView
+            android:id="@+id/Vjifentime"
+            style="@style/TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:gravity="right"
+            android:text="@string/jifentime" />
+        <EditText
+                android:id="@+id/Tjifentime"
+                style="@style/EditText"
+                android:inputType ="numberDecimal" 
+                android:singleLine="true"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/Vjifentime"
+                android:background="@android:drawable/edit_text"
+                android:paddingBottom="1dip"
+                android:text="0.1"/>
+		<Button
+            android:id="@+id/Bdanci"
+            android:layout_marginTop="15dp"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/Tjifentime"
+            style="@style/Button"
+            android:text="@string/danci" />
+		<Button
+            android:id="@+id/Bduoci"
+            android:layout_marginTop="15dp"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/Bdanci"
+            style="@style/Button"
+            android:text="@string/duoci" />
+		<Button
+            android:id="@+id/Bstop"
+            android:layout_marginTop="15dp"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/Bduoci"
+            style="@style/Button"
+            android:text="@string/stop" />
+		<Button
+            android:id="@+id/Bjiguang"
+            android:layout_marginTop="15dp"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/Bstop"
+            style="@style/Button"
+            android:text="@string/jiguang" />
+		<TextView
+            android:id="@+id/Vgonglv"
+            style="@style/TextView"
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/Bjiguang"
+            android:gravity="right"
+            android:text="@string/gonglv" />
+        <EditText
+                android:id="@+id/Tgonglv"
+                style="@style/EditText"
+                android:inputType ="numberDecimal" 
+                android:singleLine="true"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/Vgonglv"
+                android:background="@android:drawable/edit_text"
+                android:paddingBottom="1dip"
+                android:text="0"/>
+        <Button
+            android:id="@+id/Bxianzhen"
+            android:layout_marginTop="15dp"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/Tgonglv"
+            style="@style/Button"
+            android:text="@string/xianzhen" />
+    </RelativeLayout>
+
 
 </RelativeLayout>
