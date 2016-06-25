@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
@@ -20,6 +21,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -356,6 +358,52 @@ public class MainActivity extends Activity {
 			}
 		});
 	}
+	void init_draw()
+	{
+		LinearLayout layout=(LinearLayout) findViewById(R.id.draw);  
+        final DrawView view=new DrawView(this);  
+        view.setMinimumHeight(500);  
+        view.setMinimumWidth(300);  
+        //通知view组件重绘    
+        view.invalidate();  
+        layout.addView(view);  
+	}
+	void init_draw2()
+	{
+		 LineGraphicView tu;  
+		 ArrayList<Double> yList;  
+		tu = (LineGraphicView) findViewById(R.id.line_graphic);  
+		  
+        yList = new ArrayList<Double>(); 
+        /*for(int j=0;j<5;j++)
+        {
+        	for(int i=0;i<72;i++)
+        	yList.add((double) (i));
+        	for(int i=0;i<72;i++)
+            	yList.add((double) (72-i));
+        }*/
+        for(int j=0;j<5;j++)
+        {
+        	yList.add((double) 12);
+        	yList.add((double) 65);
+        	yList.add((double) 1);
+        	yList.add((double) 10);
+        	yList.add((double) 24);
+        	yList.add((double) 72);
+        }
+        ArrayList<String> xRawDatas = new ArrayList<String>();
+        for(int i=0;i<2068;i++)
+        xRawDatas.add(String.valueOf(i));/*  
+        xRawDatas.add("259");  
+        xRawDatas.add("517");  
+        xRawDatas.add("776");
+        xRawDatas.add("1034");
+        xRawDatas.add("1293");  
+        xRawDatas.add("1551");  
+        xRawDatas.add("1810");  
+        xRawDatas.add("2068");*/  
+        tu.setData(yList, xRawDatas, 72, 36);  
+	}
 	public void Init()
 	{
 		//for(int i=0;i<2068*72;i++)
@@ -426,5 +474,6 @@ public class MainActivity extends Activity {
 		mReadThread.start();
 		handler.postDelayed(task, 1000);
 		new TestThread().start();
+		init_draw2();
 	}
 }
