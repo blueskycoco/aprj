@@ -76,18 +76,29 @@
             android:layout_alignParentLeft="true"
             android:gravity="right"
             android:text="@string/jifentime" />
+        <LinearLayout android:focusable="true" android:focusableInTouchMode="true" android:layout_width="0px" android:layout_height="0px"/>
         <EditText
                 android:id="@+id/Tjifentime"
                 style="@style/EditText"
-                android:inputType ="numberDecimal" 
+                android:inputType ="number" 
                 android:singleLine="true"
-                android:layout_width="140dp"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_below="@+id/Vjifentime"
                 android:background="@android:drawable/edit_text"
                 android:paddingBottom="1dip"
-                android:text="0.1"/>
+                android:selectAllOnFocus="true"
+                android:text="100"/>
+        <TextView
+            android:id="@+id/VmS"
+            style="@style/TextView"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/Tjifentime"
+            android:layout_toRightOf="@+id/Tjifentime"
+            android:gravity="right"
+            android:text="mS" />
 		<Button
             android:id="@+id/Bdanci"
             android:layout_marginTop="15dp"
@@ -137,15 +148,25 @@
         <EditText
                 android:id="@+id/Tgonglv"
                 style="@style/EditText"
-                android:inputType ="numberDecimal" 
+                android:inputType ="number" 
                 android:singleLine="true"
-                android:layout_width="140dp"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_below="@+id/Vgonglv"
                 android:background="@android:drawable/edit_text"
                 android:paddingBottom="1dip"
+                android:selectAllOnFocus="true"
                 android:text="0"/>
+        <TextView
+            android:id="@+id/VmW"
+            style="@style/TextView"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/Tgonglv"
+            android:layout_toRightOf="@+id/Tgonglv"
+            android:gravity="right"
+            android:text="mW" />
         <Button
             android:id="@+id/Bxianzhen"
             android:layout_marginTop="15dp"

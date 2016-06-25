@@ -159,24 +159,24 @@ static void pabort(const char *s)
 	//exit(-1);
 }
 JNIEXPORT jbyteArray JNICALL Java_SPI
-	(JNIEnv *env, jobject thiz,jbyteArray send_buf)
+	(JNIEnv *env, jobject thiz)
 {
 	int ret = 0;
 	int i=0;
 	uint8_t mode=SPI_CPHA|SPI_CPOL;
 	uint8_t mode_ori=0;
 	uint8_t bits = 8;
-	uint32_t speed = 500000;
+	uint32_t speed = 12000000;
 	uint16_t delay=0;
 
-	jbyte * olddata = (jbyte*)(*env)->GetByteArrayElements(env,send_buf, 0); 
-	jsize  oldsize = (*env)->GetArrayLength(env,send_buf); 
-	unsigned char * bytesend = (unsigned char *)olddata;
-	int send_len = (int)oldsize;
+	//jbyte * olddata = (jbyte*)(*env)->GetByteArrayElements(env,send_buf, 0); 
+	//jsize  oldsize = (*env)->GetArrayLength(env,send_buf); 
+	//unsigned char * bytesend = (unsigned char *)olddata;
+	int send_len = 2068;//(int)oldsize;
 	//LOGD("send_len %d",send_len);
 	//for(i=0;i<send_len;i++)
 	//	LOGD("%x",bytesend[i]);
-	unsigned char * bytercv = (unsigned char *)malloc(send_len*sizeof(unsigned char));
+	unsigned char * bytercv = (unsigned char *)malloc(72*send_len*sizeof(unsigned char));
 	memset(bytercv,0,send_len);
 	
 	int fd = open(SPI_DEVICE_NAME, O_RDWR);
@@ -206,26 +206,30 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 	}
 
 	struct spi_ioc_transfer tr = {
-		.tx_buf = (unsigned long)bytesend,
+		.tx_buf = (unsigned long)NULL,//(unsigned long)bytesend,
 		.rx_buf = (unsigned long)bytercv,
 		.len = send_len,
 		.delay_usecs = delay,
 		.speed_hz = speed,
 		.bits_per_word = bits,
 	};
-
-	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-	if (ret < 1)
+	for(i=0;i<72;i++)
 	{
-		LOGD("can't send spi message");
-		return NULL;
+
+		ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+		if (ret < 1)
+		{
+			LOGD("can't send spi message");
+			return NULL;
+		}
+		tr.rx_buf=(unsigned long)bytercv+send_len*(i+1);
 	}
 	close(fd);
 	jbyte *by = (jbyte*)bytercv; 
-	jbyteArray jarray = (*env)->NewByteArray(env,send_len); 
+	jbyteArray jarray = (*env)->NewByteArray(env,send_len*72); 
 	(*env)->SetByteArrayRegion(env,jarray, 0, send_len, by);
 	free(bytercv);
-	(*env)->ReleaseByteArrayElements(env,send_buf,olddata,0);
+	//(*env)->ReleaseByteArrayElements(env,send_buf,olddata,0);
 	return jarray;
 #if 0
 	/*
@@ -253,7 +257,7 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 }
 
 static JNINativeMethod gMethods[] = {  
-	{"wrSPI", "([B)[B", (void *)Java_SPI}, 
+	{"wrSPI", "()[B", (void *)Java_SPI}, 
 	{"getBattery", "()I", (void *)Java_Battery},
 	{"closeSerial", "()V", (void *)Java_CloseSerialPort},
 	{"openSerial", "()Ljava/io/FileDescriptor;", (void *)Java_OpenSerialPort}

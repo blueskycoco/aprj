@@ -10,7 +10,7 @@
     <string name="stop">停止采谱</string>
     <string name="jiguangk">开激光</string>
     <string name="jiguangg">关激光</string>
-    <string name="gonglv">激光功率设置</string>
+    <string name="gonglv">激光功率</string>
     <string name="xianzhen">线阵</string>
     <string name="mianzhen">面阵</string>
     <string name="power">电池电量:</string>
