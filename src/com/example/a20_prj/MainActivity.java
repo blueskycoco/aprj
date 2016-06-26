@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Random;
 
 import android.app.Activity;
 import android.content.Context;
@@ -43,6 +44,9 @@ public class MainActivity extends Activity {
 	static boolean duoci_flag=false;
 	int jifen_time=100;
 	Context g_ctx=null;
+	ArrayList<String> xRawDatas;
+	LineGraphicView tu;  
+	ArrayList<Double> yList;  
 	byte[] cmd_check_fpga=	{(byte) 0xaa,0x55,0x00,0x00,(byte) 0xff,0x00,0x0d};
 	byte[] cmd_danci=		{(byte) 0xaa,0x01,0x00,0x00,(byte) 0xac,0x00,0x0d};
 	byte[] cmd_duoci=		{(byte) 0xaa,0x02,0x00,0x00,(byte) 0xad,0x00,0x0d};
@@ -50,8 +54,15 @@ public class MainActivity extends Activity {
 	byte[] cmd_jiguang_k=	{(byte) 0xaa,0x04,0x00,0x00,0x00,0x00,0x0d};
 	byte[] cmd_jiguang_g=	{(byte) 0xaa,0x05,0x00,0x00,0x00,0x00,0x0d};	
 	byte[] cmd_xianzhen=	{(byte) 0xaa,0x06,0x00,0x00,(byte) 0xac,0x00,0x0d};
-	byte[] fpga_data=new byte[2068*72];
+	int[] fpga_data=new int[30];
 	private final Handler handler = new Handler();
+	private final Handler handlerUI = new Handler();
+	final Runnable mUpdateResults = new Runnable() {
+		public void run() {
+
+			draw_cuve(fpga_data);
+		}
+		};
 	private final Runnable task = new Runnable() {
 
 		public void run() {
@@ -133,7 +144,9 @@ public class MainActivity extends Activity {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),2068*72));
+					HardwareControl.wrSPI();
+					//Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),2068*72));
+					handlerUI.post(mUpdateResults); 
 				}
 				else
 				{
@@ -271,6 +284,8 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("20_prj","btnDanci");
+				btnDuoci.setEnabled(false);
+				btnStop.setEnabled(false);
 				int jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				cmd_danci[2]=(byte) (jf&0xff);
@@ -282,7 +297,11 @@ public class MainActivity extends Activity {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),2068*72));
+				HardwareControl.wrSPI();
+				//Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),2068*72));
+				draw_cuve(fpga_data);
+				btnDuoci.setEnabled(true);
+				btnStop.setEnabled(true);
 			}
 		});
 	}
@@ -290,14 +309,16 @@ public class MainActivity extends Activity {
 		btnDuoci.setOnClickListener(new OnClickListener() {
 
 			@Override
-			public void onClick(View arg0) {
+			public void onClick(View arg0) {				
 				Log.i("20_prj","btnDuoci");
+				btnDuoci.setEnabled(false);
+				btnDanci.setEnabled(false);
 				int jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				cmd_duoci[2]=(byte) (jf&0xff);
 				cmd_duoci[3]=(byte) ((jf>>8)&0xff);
 				send_cmd(cmd_duoci);
-				duoci_flag=true;
+				duoci_flag=true;				
 			}
 		});
 	}
@@ -309,6 +330,8 @@ public class MainActivity extends Activity {
 				Log.i("20_prj","btnStop");
 				send_cmd(cmd_stop);
 				duoci_flag=false;
+				btnDuoci.setEnabled(true);
+				btnDanci.setEnabled(true);
 			}
 		});
 	}
@@ -369,40 +392,30 @@ public class MainActivity extends Activity {
         layout.addView(view);  
 	}
 	void init_draw2()
+	{		 
+		tu = (LineGraphicView) findViewById(R.id.line_graphic);		  
+        yList = new ArrayList<Double>();        
+        xRawDatas = new ArrayList<String>();
+        for(int i=0;i<30;i++)
+        xRawDatas.add(String.valueOf(i));  
+        draw_cuve(fpga_data);
+	}
+	void create_fpga_data(int[] cuve)
 	{
-		 LineGraphicView tu;  
-		 ArrayList<Double> yList;  
-		tu = (LineGraphicView) findViewById(R.id.line_graphic);  
-		  
-        yList = new ArrayList<Double>(); 
-        /*for(int j=0;j<5;j++)
+		Random random=new Random();
+		for(int i=0;i<30;i++)
+			cuve[i]=random.nextInt(73727);
+	}
+	void draw_cuve(int[] cuve)
+	{
+		create_fpga_data(cuve);
+		yList.clear();
+		for(int j=0;j<30;j++)
         {
-        	for(int i=0;i<72;i++)
-        	yList.add((double) (i));
-        	for(int i=0;i<72;i++)
-            	yList.add((double) (72-i));
-        }*/
-        for(int j=0;j<5;j++)
-        {
-        	yList.add((double) 12);
-        	yList.add((double) 65);
-        	yList.add((double) 1);
-        	yList.add((double) 10);
-        	yList.add((double) 24);
-        	yList.add((double) 72);
+        	yList.add((double) cuve[j]);
         }
-        ArrayList<String> xRawDatas = new ArrayList<String>();
-        for(int i=0;i<2068;i++)
-        xRawDatas.add(String.valueOf(i));/*  
-        xRawDatas.add("259");  
-        xRawDatas.add("517");  
-        xRawDatas.add("776");
-        xRawDatas.add("1034");
-        xRawDatas.add("1293");  
-        xRawDatas.add("1551");  
-        xRawDatas.add("1810");  
-        xRawDatas.add("2068");*/  
-        tu.setData(yList, xRawDatas, 72, 36);  
+        tu.setData(yList, xRawDatas, 73727, 8192);
+        tu.invalidate();
 	}
 	public void Init()
 	{
