@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
@@ -36,7 +37,7 @@ class LineGraphicView extends View
 	private Paint mPaint;
 	private Resources res;
 	private DisplayMetrics dm;
-
+	private boolean xianzhen=true;
 	/**
 	 * data
 	 */
@@ -113,29 +114,46 @@ class LineGraphicView extends View
 	{
 		mPaint.setColor(res.getColor(R.color.color_f2f2f2));
 
-		drawAllXLine(canvas);
+		if(xianzhen)
+			drawAllXLine(canvas);
+		else
+			clearAllXLine(canvas);
 		// 画直线（纵向）
 		drawAllYLine(canvas);
 		// 点的操作设置
 		mPoints = getPoints();
-
-		mPaint.setColor(res.getColor(R.color.color_ff4631));
-		mPaint.setStrokeWidth(dip2px(2.5f));
-		mPaint.setStyle(Style.STROKE);
-		if (mStyle == Linestyle.Curve)
+		
+		if(xianzhen)
 		{
-			drawScrollLine(canvas);
+			mPaint.setColor(res.getColor(R.color.color_ff4631));
+			mPaint.setStrokeWidth(dip2px(2.5f));
+			mPaint.setStyle(Style.STROKE);
+			if (mStyle == Linestyle.Curve)
+			{
+				drawScrollLine(canvas);
+			}
+			else
+			{
+				drawLine(canvas);
+			}
 		}
-		else
+		else				  
 		{
-			drawLine(canvas);
+			mPaint.setColor(Color.GRAY);// 设置灰色
+			//mPaint.setStyle(Paint.Style.FILL);//设置填满
 		}
 
 		mPaint.setStyle(Style.FILL);
 		for (int i = 0; i < mPoints.length; i++)
 		{
-			canvas.drawCircle(mPoints[i].x, mPoints[i].y, CIRCLE_SIZE / 2, mPaint);
-		}
+			if(xianzhen)
+				canvas.drawCircle(mPoints[i].x, mPoints[i].y, CIRCLE_SIZE / 2, mPaint);
+			else
+			{
+				mPaint.setColor(Color.rgb(mPoints[i].y%255,mPoints[i].y%255,mPoints[i].y%255));
+				canvas.drawRect(mPoints[i].x, 0, mPoints[i].x+24, 490, mPaint);  
+			}
+		}		
 	}
 
 	/**
@@ -151,7 +169,16 @@ class LineGraphicView extends View
 					canvas);
 		}
 	}
-
+	private void clearAllXLine(Canvas canvas)
+	{
+		for (int i = 0; i < spacingHeight + 1; i++)
+		{
+			canvas.drawLine(blwidh, bheight - (bheight / spacingHeight) * i + marginTop, (canvasWidth - blwidh),
+					bheight - (bheight / spacingHeight) * i + marginTop, mPaint);// Y坐标
+			drawText("", blwidh / 2, bheight - (bheight / spacingHeight) * i + marginTop,
+					canvas);
+		}
+	}
 	/**
 	 * 画所有纵向表格，包括Y轴	
 	 */
@@ -166,7 +193,6 @@ class LineGraphicView extends View
 					canvas);// X坐标
 		}
 	}
-
 	private void drawScrollLine(Canvas canvas)
 	{
 		Point startp = new Point();
@@ -232,7 +258,10 @@ class LineGraphicView extends View
 		this.yRawData = yRawData;
 		this.spacingHeight = maxValue / averageValue;
 	}
-
+	public void setXianzhen(boolean flag)
+	{
+		xianzhen=flag;
+	}
 	public void setTotalvalue(int maxValue)
 	{
 		this.maxValue = maxValue;

@@ -378,6 +378,7 @@ public class MainActivity extends Activity {
 					cmd_xianzhen[2]=0x01;
 				}
 				send_cmd(cmd_xianzhen);
+				tu.setXianzhen(xianzhen_flag);
 			}
 		});
 	}
