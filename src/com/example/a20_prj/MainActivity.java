@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
 				int level = 0;
 				float max=32767;
 				float level2=0;
-				level2=(float)HardwareControl.getBattery();
+				//level2=(float)HardwareControl.getBattery();
 				level=(int) ((level2/max)*((float)100));
 				//Log.i("20_prj", "Battery "+level2+"Level "+level);
 				if (20 > level) {
@@ -259,7 +259,7 @@ public class MainActivity extends Activity {
 		byte[] cmd={0x24,0x32,(byte)0xff,0x23,0x0a};
 		try {
 			mOutputStream.write(cmd);
-			Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),5));
+			//Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),5));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -297,8 +297,8 @@ public class MainActivity extends Activity {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				HardwareControl.wrSPI();
-				//Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),2068*72));
+				//HardwareControl.wrSPI();
+				Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),2068*72));
 				draw_cuve(fpga_data);
 				btnDuoci.setEnabled(true);
 				btnStop.setEnabled(true);
