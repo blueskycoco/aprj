@@ -18,7 +18,7 @@
 #include <linux/types.h>
 //#include <linux/spi/spidev.h>
 //#include <linux/i2c-dev.h>
-#include "jni.h"
+#include <jni.h>
 //#include "JNIHelp.h"
 #define I2C_SLAVE	0x0703
 #define SPI_CPHA		0x01
@@ -183,6 +183,7 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 	if (fd < 0)
 	{
 		LOGD("can't open device");
+		free(bytercv);
 		return NULL;
 	}
 
@@ -190,6 +191,8 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 	if (ret == -1)
 	{
 		LOGD("can't get spi mode");
+		close(fd);
+		free(bytercv);
 		return NULL;
 	}
 	else
@@ -200,6 +203,8 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 			if (ret == -1)
 			{
 				LOGD("can't set spi mode");
+				close(fd);
+				free(bytercv);
 				return NULL;
 			}
 		}
@@ -220,6 +225,8 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 		if (ret < 1)
 		{
 			LOGD("can't send spi message");
+			close(fd);
+			free(bytercv);
 			return NULL;
 		}
 		tr.rx_buf=(unsigned long)bytercv+send_len*(i+1);
@@ -255,8 +262,77 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 		pabort("can't get max speed hz");
 #endif
 }
+JNIEXPORT void Java_SPI_w
+	(JNIEnv *env, jobject thiz, jbyteArray in)
+{
+	int ret = 0;
+	int i=0;
+	uint8_t mode=SPI_CPHA|SPI_CPOL;
+	uint8_t mode_ori=0;
+	uint8_t bits = 8;
+	uint32_t speed = 12000000;
+	uint16_t delay=0;
+	if(in==NULL)
+		return ;
 
+	int fd = open(SPI_DEVICE_NAME, O_RDWR);
+	if (fd < 0)
+	{
+		LOGD("can't open device");
+		return ;
+	}
+
+	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+	if (ret == -1)
+	{
+		LOGD("can't get spi mode");
+		close(fd);
+		return ;
+	}
+	else
+	{
+		if(mode!=mode_ori)
+		{
+			ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
+			if (ret == -1)
+			{
+				LOGD("can't set spi mode");
+				close(fd);
+				return ;
+			}
+		}
+	}
+	jint len  = (*env)->GetArrayLength(env,in);
+	unsigned char *cmd = (unsigned char *)malloc(len);
+	memset(cmd,0,len);
+	(*env)->GetByteArrayRegion(env,in,0,len,(jbyte *)cmd);
+	LOGD("send_len %d",len);
+	for(i=0;i<len;i++)
+		LOGD("%x",cmd[i]);
+	struct spi_ioc_transfer tr = {
+		.tx_buf = (unsigned long)cmd,
+		.rx_buf = (unsigned long)NULL,
+		.len = len,
+		.delay_usecs = delay,
+		.speed_hz = speed,
+		.bits_per_word = bits,
+	};
+
+	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+	if (ret < 1)
+	{
+		LOGD("can't send spi message");
+		close(fd);
+		free(cmd);
+		return ;
+	}
+
+	close(fd);
+	free(cmd);
+	return ;
+}
 static JNINativeMethod gMethods[] = {  
+	{"wSPI", "([B)V", (void *)Java_SPI_w},
 	{"wrSPI", "()[B", (void *)Java_SPI}, 
 	{"getBattery", "()I", (void *)Java_Battery},
 	{"closeSerial", "()V", (void *)Java_CloseSerialPort},
