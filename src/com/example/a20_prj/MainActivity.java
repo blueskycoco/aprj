@@ -268,7 +268,8 @@ public class MainActivity extends Activity {
 	{
 		byte[] cmd={0x24,0x32,(byte)0xff,0x23,0x0a};
 		try {
-			mOutputStream.write(cmd);
+			if(mOutputStream != null)
+				mOutputStream.write(cmd);
 			//Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),5));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -281,7 +282,8 @@ public class MainActivity extends Activity {
 			int tmp=((int)(cmd[0]&0xff)+(int)(cmd[1]&0xff)+(int)(cmd[2]&0xff)+(int)(cmd[3]&0xff)*256);
 			cmd[4]=(byte) (tmp&0xff);
 			cmd[5]=(byte) ((tmp>>8)&0xff);
-			mOutputStream.write(cmd);
+			if(mOutputStream != null)
+				mOutputStream.write(cmd);
 			Log.i("20_prj", "sned cmd "+byte2HexStr(cmd,7));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
