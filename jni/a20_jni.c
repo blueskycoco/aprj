@@ -16,6 +16,7 @@
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <jni.h>
+#include <errno.h>
 
 #define SPI_START_READ	0xa5
 #define CAP_XIAN_ZHENG	0xde
@@ -281,9 +282,9 @@ JNIEXPORT jbyteArray Java_SPI
 	{
 		LOGE("SPI in is null , to read FPGA data ");
 		if(xian)
-			send_len = 2068*2 + 2*2;//xianzhen 0xa500 0x0000 2068 dummy word
+			send_len = 2068*2 + 2*2;	//xianzhen 0xa500 0x0000 2068 dummy word
 		else
-			send_len = 2068*2*72 + 2*2;//mianzhen 0xa500 0x0000 2068*72 dummy word
+			send_len = 2068*2*72 + 2*2;	//mianzhen 0xa500 0x0000 2068*72 dummy word
 		bytercv = (unsigned char *)malloc(send_len*sizeof(unsigned char));
 		bytesend = (unsigned char *)malloc(send_len*sizeof(unsigned char));
 		memset(bytercv,0,send_len);
@@ -360,7 +361,7 @@ JNIEXPORT jbyteArray Java_SPI
 	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
 	if (ret < 1)
 	{
-		LOGD("can't send spi message");
+		LOGD("can't send spi message , %d %d",ret,errno);
 		close(fd);
 		free(bytesend);
 		if(bytercv)
@@ -370,7 +371,7 @@ JNIEXPORT jbyteArray Java_SPI
 
 	close(fd);
 	free(bytesend);
-	if(in != NULL)
+	if(in == NULL)
 	{
 		jbyte *by = (jbyte*)(bytercv+4); //omit first 4 bytes
 		jarray = (*env)->NewByteArray(env,send_len-4); 

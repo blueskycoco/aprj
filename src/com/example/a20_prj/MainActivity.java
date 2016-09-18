@@ -311,7 +311,7 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 				//HardwareControl.wrSPI();
-				Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*72));
+				Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068));
 				draw_cuve(fpga_data);
 				btnDuoci.setEnabled(true);
 				btnStop.setEnabled(true);
