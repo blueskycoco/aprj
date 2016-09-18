@@ -12,8 +12,7 @@ public class HardwareControl {
 	private static FileInputStream mFileInputStream;
 	private static FileOutputStream mFileOutputStream;
 	private static final String TAG = "SerialPort";
-	public native static byte[] wrSPI();
-	public native static void wSPI(byte[] cmd);
+	public native static byte[] wrSPI(byte[] cmd);
 	public native static FileDescriptor openSerial();
 	public native static void closeSerial();	
 	public native static  int getBattery();

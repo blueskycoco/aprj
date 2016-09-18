@@ -186,6 +186,15 @@
             android:layout_below="@+id/Tgonglv"
             style="@style/Button"
             android:text="@string/xianzhen" />
+        <Button
+            android:id="@+id/Bbodong"
+            android:layout_marginTop="15dp"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/Bxianzhen"
+            style="@style/Button"
+            android:text="@string/arm" />
     </RelativeLayout>
 
 

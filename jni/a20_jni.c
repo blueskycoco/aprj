@@ -9,17 +9,19 @@
 #include <assert.h>
 #include <sys/socket.h>
 #include <net/if.h>
-//#include <cutils/properties.h>
 #include <sys/wait.h>
 #include <android/log.h>
 #include <stdint.h>
 #include <getopt.h>
 #include <sys/ioctl.h>
 #include <linux/types.h>
-//#include <linux/spi/spidev.h>
-//#include <linux/i2c-dev.h>
 #include <jni.h>
-//#include "JNIHelp.h"
+
+#define SPI_START_READ	0xa5
+#define CAP_XIAN_ZHENG	0xde
+#define BATTERY_I2C_ADDR	0x48
+#define BATTERY_I2C_CONFIG	0x0c
+
 #define I2C_SLAVE	0x0703
 #define SPI_CPHA		0x01
 #define SPI_CPOL		0x02
@@ -46,7 +48,7 @@ struct spi_ioc_transfer {
 #define SPI_IOC_MAGIC			'k'
 #define SPI_MSGSIZE(N) \
 	((((N)*(sizeof (struct spi_ioc_transfer))) < (1 << _IOC_SIZEBITS)) \
-		? ((N)*(sizeof (struct spi_ioc_transfer))) : 0)
+	 ? ((N)*(sizeof (struct spi_ioc_transfer))) : 0)
 #define SPI_IOC_MESSAGE(N) _IOW(SPI_IOC_MAGIC, 0, char[SPI_MSGSIZE(N)])
 #define SPI_IOC_RD_MODE			_IOR(SPI_IOC_MAGIC, 1, __u8)
 #define SPI_IOC_WR_MODE			_IOW(SPI_IOC_MAGIC, 1, __u8)
@@ -57,10 +59,10 @@ struct spi_ioc_transfer {
 #define I2C_DEVICE_NAME		"/dev/i2c-3"
 #define SPI_DEVICE_NAME		"/dev/spidev0.0"
 #define TTY_DEVICE_NAME		"/dev/ttyS1"
-
 int serialfd=-1;
+
 JNIEXPORT jobject Java_OpenSerialPort
-  (JNIEnv *env, jobject thiz)
+(JNIEnv *env, jobject thiz)
 {
 	int fd;
 	speed_t speed=B115200;
@@ -102,40 +104,41 @@ JNIEXPORT jobject Java_OpenSerialPort
 	(*env)->SetIntField(env, mFileDescriptor, descriptorID, (jint)fd);
 	return mFileDescriptor;
 }
+
 JNIEXPORT void Java_CloseSerialPort
-  (JNIEnv *env, jobject thiz)
+(JNIEnv *env, jobject thiz)
 {
 	LOGE("close(fd = %d)", serialfd);
 	if(-1!=serialfd)
 		close(serialfd);
 }
+
 JNIEXPORT jint JNICALL Java_Battery
-	(JNIEnv *env, jobject thiz)
+(JNIEnv *env, jobject thiz)
 {
-	int level=0;
-	char config[1] = {0x0C};
-	int addr = 0x48;
+	int level = 0;
+	char config[1] = {BATTERY_I2C_CONFIG};
+	int addr = BATTERY_I2C_ADDR;
 	int fd = open(I2C_DEVICE_NAME, O_RDWR);
-	
+
 	if (fd == -1)
 	{
 		LOGE("I2C open error");
 		return 1;	
 	}
-	//else
-	//	LOGE("I2C open %s ok",I2C_DEVICE_NAME);
+
 	if (ioctl(fd, I2C_SLAVE, addr) < 0)
 	{
 		LOGE("I2C_SLAVE error");
-		exit(1);
+		close(fd);
+		return 1;
 	}
 	write(fd, config, 1);
-	//sleep(1);
 
 	char data[2]={0};
 	if(read(fd, data, 2) != 2)
 	{
-		LOGE("Erorr : Input/output Erorr \n");
+		LOGE("Erorr : Input/output Erorr ");
 	}
 	else 
 	{
@@ -145,21 +148,17 @@ JNIEXPORT jint JNICALL Java_Battery
 		{
 			level -= 65536;
 		}
-
+		level = (level * 15)/10;
 		// Output data to screen
-		//LOGD("Digital value of analog input: %d \n", level);
+		LOGD("Digital value of analog input: %d ", level);
 	}
 
 	close(fd);
 	return level;
 }
-static void pabort(const char *s)
-{
-	perror(s);
-	//exit(-1);
-}
-JNIEXPORT jbyteArray JNICALL Java_SPI
-	(JNIEnv *env, jobject thiz)
+
+JNIEXPORT jbyteArray JNICALL Java_SPI_bak
+(JNIEnv *env, jobject thiz)
 {
 	int ret = 0;
 	int i=0;
@@ -168,17 +167,18 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 	uint8_t bits = 8;
 	uint32_t speed = 12000000;
 	uint16_t delay=0;
-
-	//jbyte * olddata = (jbyte*)(*env)->GetByteArrayElements(env,send_buf, 0); 
-	//jsize  oldsize = (*env)->GetArrayLength(env,send_buf); 
-	//unsigned char * bytesend = (unsigned char *)olddata;
-	int send_len = 2068;//(int)oldsize;
-	//LOGD("send_len %d",send_len);
-	//for(i=0;i<send_len;i++)
-	//	LOGD("%x",bytesend[i]);
-	unsigned char * bytercv = (unsigned char *)malloc(72*send_len*sizeof(unsigned char));
+	int xian =0 ;
+	int send_len = 0;
+	if(xian)
+		send_len = 2068*2 + 2*2;//xianzhen 0xa500 0x0000 2068 dummy word
+	else
+		send_len = 2068*2*72 + 2*2;//mianzhen 0xa500 0x0000 2068*72 dummy word
+	unsigned char * bytercv = (unsigned char *)malloc(send_len*sizeof(unsigned char));
+	unsigned char * bytesend = (unsigned char *)malloc(send_len*sizeof(unsigned char));
 	memset(bytercv,0,send_len);
-	
+	memset(bytesend,0,send_len);
+	bytesend[0] = SPI_START_READ;
+
 	int fd = open(SPI_DEVICE_NAME, O_RDWR);
 	if (fd < 0)
 	{
@@ -187,12 +187,13 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 		return NULL;
 	}
 
-	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode_ori);
 	if (ret == -1)
 	{
 		LOGD("can't get spi mode");
 		close(fd);
 		free(bytercv);
+		free(bytesend);
 		return NULL;
 	}
 	else
@@ -205,19 +206,20 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 				LOGD("can't set spi mode");
 				close(fd);
 				free(bytercv);
+				free(bytesend);
 				return NULL;
 			}
 		}
 	}
-
 	struct spi_ioc_transfer tr = {
-		.tx_buf = (unsigned long)NULL,//(unsigned long)bytesend,
+		.tx_buf = (unsigned long)bytesend,
 		.rx_buf = (unsigned long)bytercv,
 		.len = send_len,
 		.delay_usecs = delay,
 		.speed_hz = speed,
 		.bits_per_word = bits,
 	};
+#if 0
 	for(i=0;i<72;i++)
 	{
 
@@ -231,63 +233,102 @@ JNIEXPORT jbyteArray JNICALL Java_SPI
 		}
 		tr.rx_buf=(unsigned long)bytercv+send_len*(i+1);
 	}
-	close(fd);
-	jbyte *by = (jbyte*)bytercv; 
-	jbyteArray jarray = (*env)->NewByteArray(env,send_len*72); 
-	(*env)->SetByteArrayRegion(env,jarray, 0, send_len, by);
-	free(bytercv);
-	//(*env)->ReleaseByteArrayElements(env,send_buf,olddata,0);
-	return jarray;
-#if 0
-	/*
-	 * bits per word
-	 */
-	ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
-	if (ret == -1)
-		pabort("can't set bits per word");
-
-	ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
-	if (ret == -1)
-		pabort("can't get bits per word");
-
-	/*
-	 * max speed hz
-	 */
-	ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
-	if (ret == -1)
-		pabort("can't set max speed hz");
-
-	ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
-	if (ret == -1)
-		pabort("can't get max speed hz");
+#else
+	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+	if (ret < 1)
+	{
+		LOGD("can't send spi message");
+		close(fd);
+		free(bytercv);
+		free(bytesend);
+		return NULL;
+	}
 #endif
+	close(fd);
+	jbyte *by = (jbyte*)(bytercv+4); //omit first 4 bytes
+	jbyteArray jarray = (*env)->NewByteArray(env,send_len-4); 
+	(*env)->SetByteArrayRegion(env,jarray, 0, send_len-4, by);
+	free(bytercv);
+	free(bytesend);
+	return jarray;
 }
-JNIEXPORT void Java_SPI_w
-	(JNIEnv *env, jobject thiz, jbyteArray in)
+
+/*
+ * in is for cmd to FPGA 
+ * 0xaa 0x00 = switch to usb upload (default mode)
+ * 0xaa 0x01 = switch to spi upload
+ * 0xaa 0xab = switch to mian zheng
+ * 0xaa 0xde = switch to xian zheng
+ * 0xa5 0x00 = start cap after cmd mian zheng / xian zheng
+ * if in is null , just read fpga data out
+ */
+JNIEXPORT jbyteArray Java_SPI
+(JNIEnv *env, jobject thiz, jbyteArray in)
 {
 	int ret = 0;
 	int i=0;
+	static int xian=0;
 	uint8_t mode=SPI_CPHA|SPI_CPOL;
 	uint8_t mode_ori=0;
 	uint8_t bits = 8;
 	uint32_t speed = 12000000;
 	uint16_t delay=0;
+	int send_len = 0;
+	unsigned char *bytercv = NULL;
+	unsigned char *bytesend = NULL;
+	jbyteArray jarray = NULL;
 	if(in==NULL)
-		return ;
+	{
+		LOGE("SPI in is null , to read FPGA data ");
+		if(xian)
+			send_len = 2068*2 + 2*2;//xianzhen 0xa500 0x0000 2068 dummy word
+		else
+			send_len = 2068*2*72 + 2*2;//mianzhen 0xa500 0x0000 2068*72 dummy word
+		bytercv = (unsigned char *)malloc(send_len*sizeof(unsigned char));
+		bytesend = (unsigned char *)malloc(send_len*sizeof(unsigned char));
+		memset(bytercv,0,send_len);
+		memset(bytesend,0,send_len);
+		bytesend[0] = SPI_START_READ;
+	}
+	else
+	{
+		LOGE("SPI in is not null , to send cmd ");
+		send_len  = (*env)->GetArrayLength(env,in);
+		bytesend = (unsigned char *)malloc(send_len);
+		memset(bytesend,0,send_len);
+		(*env)->GetByteArrayRegion(env,in,0,send_len,(jbyte *)bytesend);
+	
+		LOGD("send_len %d",send_len);
+		for(i=0;i<send_len;i++)
+			LOGD("%x",bytesend[i]);
+	
+		if(bytesend[1] == CAP_XIAN_ZHENG)
+			xian=1;
+		else
+			xian=0;
+	}
 
 	int fd = open(SPI_DEVICE_NAME, O_RDWR);
 	if (fd < 0)
 	{
-		LOGD("can't open device");
-		return ;
+		LOGE("can't open device");
+		if(bytesend)
+			free(bytesend);
+		if(bytercv)
+			free(bytercv);
+		return NULL;
 	}
 
-	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+	ret = ioctl(fd, SPI_IOC_RD_MODE, &mode_ori);
 	if (ret == -1)
 	{
-		LOGD("can't get spi mode");
+		LOGE("can't get spi mode");
 		close(fd);
-		return ;
+		if(bytesend)
+			free(bytesend);
+		if(bytercv)
+			free(bytercv);
+		return NULL;
 	}
 	else
 	{
@@ -298,21 +339,19 @@ JNIEXPORT void Java_SPI_w
 			{
 				LOGD("can't set spi mode");
 				close(fd);
-				return ;
+				if(bytesend)
+					free(bytesend);
+				if(bytercv)
+					free(bytercv);
+				return NULL;
 			}
 		}
 	}
-	jint len  = (*env)->GetArrayLength(env,in);
-	unsigned char *cmd = (unsigned char *)malloc(len);
-	memset(cmd,0,len);
-	(*env)->GetByteArrayRegion(env,in,0,len,(jbyte *)cmd);
-	LOGD("send_len %d",len);
-	for(i=0;i<len;i++)
-		LOGD("%x",cmd[i]);
+	
 	struct spi_ioc_transfer tr = {
-		.tx_buf = (unsigned long)cmd,
-		.rx_buf = (unsigned long)NULL,
-		.len = len,
+		.tx_buf = (unsigned long)bytesend,
+		.rx_buf = (unsigned long)bytercv,
+		.len = send_len,
 		.delay_usecs = delay,
 		.speed_hz = speed,
 		.bits_per_word = bits,
@@ -323,56 +362,66 @@ JNIEXPORT void Java_SPI_w
 	{
 		LOGD("can't send spi message");
 		close(fd);
-		free(cmd);
-		return ;
+		free(bytesend);
+		if(bytercv)
+			free(bytercv);
+		return NULL;
 	}
 
 	close(fd);
-	free(cmd);
-	return ;
+	free(bytesend);
+	if(in != NULL)
+	{
+		jbyte *by = (jbyte*)(bytercv+4); //omit first 4 bytes
+		jarray = (*env)->NewByteArray(env,send_len-4); 
+		(*env)->SetByteArrayRegion(env,jarray, 0, send_len-4, by);
+		free(bytercv);
+	}
+	return jarray;
 }
+
 static JNINativeMethod gMethods[] = {  
-	{"wSPI", "([B)V", (void *)Java_SPI_w},
-	{"wrSPI", "()[B", (void *)Java_SPI}, 
+	{"wrSPI", "([B)[B", (void *)Java_SPI}, 
 	{"getBattery", "()I", (void *)Java_Battery},
 	{"closeSerial", "()V", (void *)Java_CloseSerialPort},
 	{"openSerial", "()Ljava/io/FileDescriptor;", (void *)Java_OpenSerialPort}
 }; 
- 
-static int register_android_realarm_test(JNIEnv *env)  
+
+static int register_android_jni_interface(JNIEnv *env)  
 {  
-   	jclass clazz;
-    static const char* const kClassName =  "com/example/a20_prj/HardwareControl";
+	jclass clazz;
+	static const char* const kClassName =  "com/example/a20_prj/HardwareControl";
 
-    clazz = (*env)->FindClass(env, kClassName);
-    if (clazz == NULL) {
-        LOGE("Can't find class %s\n", kClassName);
-        return -1;
-    }
-    if ((*env)->RegisterNatives(env,clazz, gMethods, sizeof(gMethods) / sizeof(gMethods[0])) != JNI_OK)
-    {
-        LOGE("Failed registering methods for %s\n", kClassName);
-        return -1;
-    }
+	clazz = (*env)->FindClass(env, kClassName);
+	if (clazz == NULL) {
+		LOGE("Can't find class %s", kClassName);
+		return -1;
+	}
+	if ((*env)->RegisterNatives(env,clazz, gMethods, sizeof(gMethods) / sizeof(gMethods[0])) != JNI_OK)
+	{
+		LOGE("Failed registering methods for %s", kClassName);
+		return -1;
+	}
 
-    return 0;
+	return 0;
 }
+
 jint JNI_OnLoad(JavaVM* vm, void* reserved) 
 {
-    
+
 	JNIEnv *env = NULL;
 	if ((*vm)->GetEnv(vm,(void**) &env, JNI_VERSION_1_4) != JNI_OK) {  
-		LOGI("Error GetEnv\n");  
+		LOGE("Error GetEnv");  
 		return -1;  
 	} 
 	assert(env != NULL);  
-	if (register_android_realarm_test(env) < 0)
+	if (register_android_jni_interface(env) < 0)
 	{
-		LOGE("register_android_realarm_test error."); 
+		LOGE("register_android_jni_interface error."); 
 		return -1;  
 	}
 	LOGI("/*****************A20 Hardware Load**********************/");
 
-    return JNI_VERSION_1_4;
+	return JNI_VERSION_1_4;
 }
 

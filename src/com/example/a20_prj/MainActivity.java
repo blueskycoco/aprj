@@ -36,24 +36,26 @@ public class MainActivity extends Activity {
 	Button	btnStop;
 	Button	btnJiguang;
 	Button	btnXianzhen;
+	Button	btnBodong;
 	EditText editJifen;
 	EditText editGonglv;
 	ImageView imageviewdianchi;
 	static boolean jiguang_flag=false;
 	static boolean xianzhen_flag=true;
+	static boolean bodong_flag=true;
 	static boolean duoci_flag=false;
 	int jifen_time=100;
 	Context g_ctx=null;
 	ArrayList<String> xRawDatas;
 	LineGraphicView tu;  
 	ArrayList<Double> yList;  
-	byte[] cmd_check_fpga=	{(byte) 0xaa,0x55,0x00,0x00,(byte) 0xff,0x00,0x0d};
-	byte[] cmd_danci=		{(byte) 0xaa,0x01,0x00,0x00,(byte) 0xac,0x00,0x0d};
-	byte[] cmd_duoci=		{(byte) 0xaa,0x02,0x00,0x00,(byte) 0xad,0x00,0x0d};
-	byte[] cmd_stop=		{(byte) 0xaa,0x03,0x00,0x00,(byte) 0xae,0x00,0x0d};
-	byte[] cmd_jiguang_k=	{(byte) 0xaa,0x04,0x00,0x00,0x00,0x00,0x0d};
-	byte[] cmd_jiguang_g=	{(byte) 0xaa,0x05,0x00,0x00,0x00,0x00,0x0d};	
-	byte[] cmd_xianzhen=	{(byte) 0xaa,0x06,0x00,0x00,(byte) 0xac,0x00,0x0d};
+	byte[] cmd_check_fpga	 =		{(byte) 0xaa,0x55,0x00,0x00,(byte) 0xff,0x00,0x0d};
+	byte[] cmd_switch_to_spi =		{(byte) 0xaa,0x01};
+	byte[] cmd_switch_to_usb =		{(byte) 0xaa,0x00};
+	byte[] cmd_switch_to_xian=		{(byte) 0xaa,(byte)0xde};
+	byte[] cmd_switch_to_mian=		{(byte) 0xaa,(byte)0xab};
+	byte[] cmd_jiguang_k	 =		{(byte) 0xaa,0x01,0x00,0x00,0x00,0x00,0x0d};
+	byte[] cmd_jiguang_g	 =		{(byte) 0xaa,0x01,0x00,0x00,0x00,0x00,0x0d};
 	int[] fpga_data=new int[30];
 	private final Handler handler = new Handler();
 	private final Handler handlerUI = new Handler();
@@ -75,9 +77,9 @@ public class MainActivity extends Activity {
 				int level = 0;
 				float max=32767;
 				float level2=0;
-				//level2=(float)HardwareControl.getBattery();
+				level2=(float)HardwareControl.getBattery();
 				level=(int) ((level2/max)*((float)100));
-				//Log.i("20_prj", "Battery "+level2+"Level "+level);
+				Log.i("20_prj", "Battery "+level2+"Level "+level);
 				if (20 > level) {
 					imageviewdianchi.setBackground(getResources().getDrawable(
 							R.drawable.batt0));
@@ -135,17 +137,23 @@ public class MainActivity extends Activity {
 		public void run() {
 			super.run();
 			while (!isInterrupted()) {
-				//send_485();
 				if(duoci_flag)
 				{
+					if(xianzhen_flag)
+						HardwareControl.wrSPI(cmd_switch_to_xian);
+					else
+						HardwareControl.wrSPI(cmd_switch_to_mian);
 					try {
 						Thread.sleep(jifen_time);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					HardwareControl.wrSPI();
-					//Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),2068*72));
+					
+					if(xianzhen_flag)
+						Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068));
+					else
+						Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*72));
 					handlerUI.post(mUpdateResults); 
 				}
 				else
@@ -186,6 +194,8 @@ public class MainActivity extends Activity {
 	}
 	public static String byte2HexStr(byte[] b,int len)    
 	{    
+		if(b == null)
+			return null;
 	    String stmp="";    
 	    StringBuilder sb = new StringBuilder("");    
 	    for (int n=0;n<len;n++)    
@@ -271,7 +281,7 @@ public class MainActivity extends Activity {
 			int tmp=((int)(cmd[0]&0xff)+(int)(cmd[1]&0xff)+(int)(cmd[2]&0xff)+(int)(cmd[3]&0xff)*256);
 			cmd[4]=(byte) (tmp&0xff);
 			cmd[5]=(byte) ((tmp>>8)&0xff);
-			mOutputStream.write(cmd);			
+			mOutputStream.write(cmd);
 			Log.i("20_prj", "sned cmd "+byte2HexStr(cmd,7));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -288,9 +298,10 @@ public class MainActivity extends Activity {
 				btnStop.setEnabled(false);
 				int jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
-				cmd_danci[2]=(byte) (jf&0xff);
-				cmd_danci[3]=(byte) ((jf>>8)&0xff);
-				send_cmd(cmd_danci);
+				if(xianzhen_flag)
+					HardwareControl.wrSPI(cmd_switch_to_xian);
+				else
+					HardwareControl.wrSPI(cmd_switch_to_mian);
 				try {
 					Thread.sleep(jifen_time);
 				} catch (InterruptedException e) {
@@ -298,7 +309,7 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 				//HardwareControl.wrSPI();
-				Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(),2068*72));
+				Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*72));
 				draw_cuve(fpga_data);
 				btnDuoci.setEnabled(true);
 				btnStop.setEnabled(true);
@@ -315,9 +326,6 @@ public class MainActivity extends Activity {
 				btnDanci.setEnabled(false);
 				int jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
-				cmd_duoci[2]=(byte) (jf&0xff);
-				cmd_duoci[3]=(byte) ((jf>>8)&0xff);
-				send_cmd(cmd_duoci);
 				duoci_flag=true;				
 			}
 		});
@@ -328,7 +336,6 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("20_prj","btnStop");
-				send_cmd(cmd_stop);
 				duoci_flag=false;
 				btnDuoci.setEnabled(true);
 				btnDanci.setEnabled(true);
@@ -369,16 +376,34 @@ public class MainActivity extends Activity {
 				{
 					btnXianzhen.setText(g_ctx.getString(R.string.mianzhen));
 					xianzhen_flag=false;
-					cmd_xianzhen[2]=0x00;
 				}
 				else
 				{
 					btnXianzhen.setText(g_ctx.getString(R.string.xianzhen));
 					xianzhen_flag=true;
-					cmd_xianzhen[2]=0x01;
 				}
-				send_cmd(cmd_xianzhen);
 				tu.setXianzhen(xianzhen_flag);
+			}
+		});
+	}
+	public void setButtonBodong() {
+		btnBodong.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg0) {
+				Log.i("20_prj","btnBodong");
+				if(bodong_flag)
+				{
+					btnBodong.setText(g_ctx.getString(R.string.pc));
+					bodong_flag=false;
+					HardwareControl.wrSPI(cmd_switch_to_usb);
+				}
+				else
+				{
+					btnBodong.setText(g_ctx.getString(R.string.arm));
+					bodong_flag=true;
+					HardwareControl.wrSPI(cmd_switch_to_spi);
+				}
 			}
 		});
 	}
@@ -429,6 +454,7 @@ public class MainActivity extends Activity {
 		btnStop =(Button)findViewById(R.id.Bstop);
 		btnJiguang =(Button)findViewById(R.id.Bjiguang);
 		btnXianzhen =(Button)findViewById(R.id.Bxianzhen);
+		btnBodong =(Button)findViewById(R.id.Bbodong);
 		editJifen=(EditText)findViewById(R.id.Tjifentime);
 		editGonglv=(EditText)findViewById(R.id.Tgonglv);
 		/*
@@ -480,12 +506,14 @@ public class MainActivity extends Activity {
 		setButtonStop();
 		setButtonJiguang();
 		setButtonXianzhen();
+		setButtonBodong();
 		imageviewdianchi = (ImageView) findViewById(R.id.imageviewpower);
 		HardwareControl.init();
 		mInputStream = HardwareControl.getInputStream();
 		mOutputStream = HardwareControl.getOutputStream();
 		mReadThread = new ReadThread();
 		mReadThread.start();
+		HardwareControl.wrSPI(cmd_switch_to_spi);
 		handler.postDelayed(task, 1000);
 		new TestThread().start();
 		init_draw2();
