@@ -275,21 +275,35 @@ JNIEXPORT jbyteArray Java_SPI
 	uint32_t speed = 12000000;
 	uint16_t delay=0;
 	int send_len = 0;
+	int num = 1;
+	int rcv_len = 0;
 	unsigned char *bytercv = NULL;
 	unsigned char *bytesend = NULL;
+	unsigned char *rcv = NULL;
 	jbyteArray jarray = NULL;
 	if(in==NULL)
 	{
 		LOGE("SPI in is null , to read FPGA data ");
-		if(xian)
-			send_len = 2068*2 + 2*2;	//xianzhen 0xa500 0x0000 2068 dummy word
-		else
-			send_len = 2068*2*72 + 2*2;	//mianzhen 0xa500 0x0000 2068*72 dummy word
+		send_len = 2068 + 2*3;	//xianzhen 0xa500 0x0814 0x0000 2068 dummy word
 		bytercv = (unsigned char *)malloc(send_len*sizeof(unsigned char));
 		bytesend = (unsigned char *)malloc(send_len*sizeof(unsigned char));
+		if(xian)
+		{
+			rcv = (unsigned char *)malloc(2068*2);
+			memset(rcv,0,2068*2);
+			rcv_len = 2068*2;
+		}
+		else
+		{
+			rcv = (unsigned char *)malloc(2068*2*70);
+			memset(rcv,0,2068*2*70);
+			rcv_len = 2068*2*70;
+		}
 		memset(bytercv,0,send_len);
 		memset(bytesend,0,send_len);
 		bytesend[0] = SPI_START_READ;
+		bytesend[2] = 0x08;
+		bytesend[3] = 0x14;
 	}
 	else
 	{
@@ -317,6 +331,8 @@ JNIEXPORT jbyteArray Java_SPI
 			free(bytesend);
 		if(bytercv)
 			free(bytercv);
+		if(rcv)
+			free(rcv);
 		return NULL;
 	}
 
@@ -329,6 +345,8 @@ JNIEXPORT jbyteArray Java_SPI
 			free(bytesend);
 		if(bytercv)
 			free(bytercv);
+		if(rcv)
+			free(rcv);
 		return NULL;
 	}
 	else
@@ -344,6 +362,8 @@ JNIEXPORT jbyteArray Java_SPI
 					free(bytesend);
 				if(bytercv)
 					free(bytercv);
+				if(rcv)
+					free(rcv);
 				return NULL;
 			}
 		}
@@ -357,26 +377,40 @@ JNIEXPORT jbyteArray Java_SPI
 		.speed_hz = speed,
 		.bits_per_word = bits,
 	};
-
-	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-	if (ret < 1)
+	if(in == NULL)
 	{
-		LOGD("can't send spi message , %d %d",ret,errno);
-		close(fd);
-		free(bytesend);
-		if(bytercv)
-			free(bytercv);
-		return NULL;
+		if(xian)
+			num=2;
+		else
+			num=2*70;
 	}
+	for(i=0;i<num;i++)
+	{
 
+		ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+		if (ret < 1)
+		{
+			LOGD("can't send spi message , %d %d",ret,errno);
+			close(fd);
+			free(bytesend);
+			if(bytercv)
+				free(bytercv);
+			if(rcv)
+				free(rcv);
+			return NULL;
+		}
+		if(in == NULL)
+		memcpy(rcv+i*2068,bytercv+2*3,2068);
+	}
 	close(fd);
 	free(bytesend);
 	if(in == NULL)
 	{
-		jbyte *by = (jbyte*)(bytercv+4); //omit first 4 bytes
-		jarray = (*env)->NewByteArray(env,send_len-4); 
-		(*env)->SetByteArrayRegion(env,jarray, 0, send_len-4, by);
+		jbyte *by = (jbyte*)rcv; 
+		jarray = (*env)->NewByteArray(env,rcv_len); 
+		(*env)->SetByteArrayRegion(env,jarray, 0, rcv_len, by);
 		free(bytercv);
+		free(rcv);
 	}
 	return jarray;
 }
