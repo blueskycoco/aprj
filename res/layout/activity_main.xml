@@ -111,7 +111,7 @@
             android:text="mS" />
 		<Button
             android:id="@+id/Bdanci"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="10dp"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -120,7 +120,7 @@
             android:text="@string/danci" />
 		<Button
             android:id="@+id/Bduoci"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="10dp"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -129,7 +129,7 @@
             android:text="@string/duoci" />
 		<Button
             android:id="@+id/Bstop"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="10dp"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -138,7 +138,7 @@
             android:text="@string/stop" />
 		<Button
             android:id="@+id/Bjiguang"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="10dp"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -148,7 +148,7 @@
 		<TextView
             android:id="@+id/Vgonglv"
             style="@style/TextView"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -179,7 +179,7 @@
             android:text="mW" />
         <Button
             android:id="@+id/Bxianzhen"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="8dp"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -188,7 +188,7 @@
             android:text="@string/xianzhen" />
         <Button
             android:id="@+id/Bbodong"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="8dp"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"

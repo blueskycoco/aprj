@@ -151,9 +151,9 @@ public class MainActivity extends Activity {
 					}
 					
 					if(xianzhen_flag)
-						Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068));
+						Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2));
 					else
-						Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*72));
+						Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*70*2));
 					handlerUI.post(mUpdateResults); 
 				}
 				else
@@ -298,6 +298,8 @@ public class MainActivity extends Activity {
 				Log.i("20_prj","btnDanci");
 				btnDuoci.setEnabled(false);
 				btnStop.setEnabled(false);
+				btnXianzhen.setEnabled(false);
+				btnBodong.setEnabled(false);
 				int jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				if(xianzhen_flag)
@@ -311,10 +313,15 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 				//HardwareControl.wrSPI();
-				Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068));
+				if(xianzhen_flag)
+					Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2));
+				else
+					Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2*70));
 				draw_cuve(fpga_data);
 				btnDuoci.setEnabled(true);
 				btnStop.setEnabled(true);
+				btnXianzhen.setEnabled(true);
+				btnBodong.setEnabled(true);
 			}
 		});
 	}
@@ -326,6 +333,8 @@ public class MainActivity extends Activity {
 				Log.i("20_prj","btnDuoci");
 				btnDuoci.setEnabled(false);
 				btnDanci.setEnabled(false);
+				btnXianzhen.setEnabled(false);
+				btnBodong.setEnabled(false);
 				int jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				duoci_flag=true;				
@@ -341,6 +350,8 @@ public class MainActivity extends Activity {
 				duoci_flag=false;
 				btnDuoci.setEnabled(true);
 				btnDanci.setEnabled(true);
+				btnXianzhen.setEnabled(true);
+				btnBodong.setEnabled(true);
 			}
 		});
 	}
@@ -399,12 +410,20 @@ public class MainActivity extends Activity {
 					btnBodong.setText(g_ctx.getString(R.string.pc));
 					bodong_flag=false;
 					HardwareControl.wrSPI(cmd_switch_to_usb);
+					btnDanci.setEnabled(false);
+					btnDuoci.setEnabled(false);
+					btnXianzhen.setEnabled(false);
+					btnStop.setEnabled(false);
 				}
 				else
 				{
 					btnBodong.setText(g_ctx.getString(R.string.arm));
 					bodong_flag=true;
 					HardwareControl.wrSPI(cmd_switch_to_spi);
+					btnDanci.setEnabled(true);
+					btnDuoci.setEnabled(true);
+					btnXianzhen.setEnabled(true);
+					btnStop.setEnabled(true);
 				}
 			}
 		});
