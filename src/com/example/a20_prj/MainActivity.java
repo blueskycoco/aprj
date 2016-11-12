@@ -50,6 +50,8 @@ public class MainActivity extends Activity {
 	LineGraphicView tu;  
 	ArrayList<Double> yList;  
 	byte[] cmd_check_fpga	 =		{(byte) 0xaa,0x55,0x00,0x00,(byte) 0xff,0x00,0x0d};
+	byte[] cmd_e			 =		{(byte) 0xab,(byte)0xff};
+	byte[] cmd_real_data			 =		{(byte) 0xab,0x00};
 	byte[] cmd_switch_to_spi =		{(byte) 0xaa,0x01};
 	byte[] cmd_switch_to_usb =		{(byte) 0xaa,0x00};
 	byte[] cmd_switch_to_xian=		{(byte) 0xaa,(byte)0xde};
@@ -75,7 +77,7 @@ public class MainActivity extends Activity {
 				String date = sDateFormat_date.format(new java.util.Date());
 				textdatedetail.setText(date);
 				int level = 0;
-				float max=32767;
+				float max=42964;
 				float level2=0;
 				level2=(float)HardwareControl.getBattery();
 				level=(int) ((level2/max)*((float)100));
@@ -534,6 +536,8 @@ public class MainActivity extends Activity {
 		mOutputStream = HardwareControl.getOutputStream();
 		mReadThread = new ReadThread();
 		mReadThread.start();
+		//HardwareControl.wrSPI(cmd_e);
+		HardwareControl.wrSPI(cmd_real_data);
 		HardwareControl.wrSPI(cmd_switch_to_spi);
 		handler.postDelayed(task, 1000);
 		new TestThread().start();

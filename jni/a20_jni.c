@@ -20,7 +20,7 @@
 
 #define SPI_START_READ	0xa5
 #define CAP_XIAN_ZHENG	0xde
-#define BATTERY_I2C_ADDR	0x48
+#define BATTERY_I2C_ADDR	0x49
 #define BATTERY_I2C_CONFIG	0x0c
 
 #define I2C_SLAVE	0x0703
@@ -145,10 +145,11 @@ JNIEXPORT jint JNICALL Java_Battery
 	{
 		// Convert the data
 		level = (data[0] * 256 + data[1]);
-		if(level > 32767)
-		{
-			level -= 65536;
-		}
+		LOGD("Digital ori value %d",level);
+		//if(level > 32767)
+		//{
+		//	level -= 32767;
+		//}
 		level = (level * 15)/10;
 		// Output data to screen
 		LOGD("Digital value of analog input: %d ", level);
@@ -269,7 +270,7 @@ JNIEXPORT jbyteArray Java_SPI
 	int ret = 0;
 	int i=0;
 	static int xian=0;
-	uint8_t mode=SPI_CPHA|SPI_CPOL;
+	uint8_t mode=0;//SPI_CPHA|SPI_CPOL;
 	uint8_t mode_ori=0;
 	uint8_t bits = 8;
 	uint32_t speed = 12000000;
