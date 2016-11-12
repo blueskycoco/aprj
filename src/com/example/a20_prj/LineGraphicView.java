@@ -26,7 +26,7 @@ class LineGraphicView extends View
 	/**
 	 * 公共部分
 	 */
-	private static final int CIRCLE_SIZE = 10;
+	private static final int CIRCLE_SIZE = 2;
 
 	private static enum Linestyle
 	{
