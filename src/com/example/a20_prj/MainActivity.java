@@ -63,7 +63,28 @@ public class MainActivity extends Activity {
 	private final Handler handlerUI = new Handler();
 	final Runnable mUpdateResults = new Runnable() {
 		public void run() {
-
+			double tmp=0;
+			int j=0;
+			int bei=1;
+			byte[] data = HardwareControl.wrSPI(null);
+			if(!xianzhen_flag)
+				bei=70;
+			for(int i=0;i<30;i++)
+			{
+				/*for(j=i*130*bei;j<(i+1)*130*bei;j=j+2)
+				{
+					Log.i("LOCAL", String.valueOf((int)((data[j]&0xff)<<8|(data[j+1]&0xff))));
+					tmp=tmp+(int)((data[j]&0xff)<<8|(data[j+1]&0xff));
+				}
+				Log.i("PJ", String.valueOf(tmp));
+				fpga_data[i]=(int)(tmp/(130*bei));
+				Log.i("JG", String.valueOf(fpga_data[i]));
+				tmp=0;*/
+				if((int)((data[i*130*bei]&0xff)<<8|(data[i*130*bei+1]&0xff))!=0)
+					fpga_data[i]=(int)((data[i*130*bei]&0xff)<<8|(data[i*130*bei+1]&0xff));
+				else
+					fpga_data[i]=(int)((data[(i+1)*130*bei]&0xff)<<8|(data[(i+1)*130*bei+1]&0xff));
+			}
 			draw_cuve(fpga_data);
 		}
 		};
@@ -81,7 +102,7 @@ public class MainActivity extends Activity {
 				float level2=0;
 				level2=(float)HardwareControl.getBattery();
 				level=(int) ((level2/max)*((float)100));
-				Log.i("20_prj", "Battery "+level2+"Level "+level);
+				//Log.i("20_prj", "Battery "+level2+"Level "+level);
 				if (20 > level) {
 					imageviewdianchi.setBackground(getResources().getDrawable(
 							R.drawable.batt0));
@@ -146,16 +167,19 @@ public class MainActivity extends Activity {
 					else
 						HardwareControl.wrSPI(cmd_switch_to_mian);
 					try {
+						if(jifen_time<3000 && !xianzhen_flag)
+						Thread.sleep(3000);
+						else
 						Thread.sleep(jifen_time);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					
-					if(xianzhen_flag)
-						Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2));
-					else
-						Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*70*2));
+					//if(xianzhen_flag)
+					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2));
+					//else
+					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*70*2));
 					handlerUI.post(mUpdateResults); 
 				}
 				else
@@ -198,6 +222,7 @@ public class MainActivity extends Activity {
 	{    
 		if(b == null)
 			return null;
+		
 	    String stmp="";    
 	    StringBuilder sb = new StringBuilder("");    
 	    for (int n=0;n<len;n++)    
@@ -302,7 +327,9 @@ public class MainActivity extends Activity {
 				btnStop.setEnabled(false);
 				btnXianzhen.setEnabled(false);
 				btnBodong.setEnabled(false);
-				int jf=Integer.valueOf(editJifen.getText().toString());
+				int jf=1000;
+				if(editJifen.getText().toString()!=null)
+					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
@@ -315,10 +342,33 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 				//HardwareControl.wrSPI();
-				if(xianzhen_flag)
-					Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2));
+				int bei=1;
+				byte[] data = HardwareControl.wrSPI(null);
+				if(!xianzhen_flag)
+				{
+					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2*70));
+					bei=70;
+				}
 				else
-					Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2*70));
+					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
+				double tmp=0;
+				int j=0;
+				for(int i=0;i<30;i++)
+				{
+					/*for(j=i*130*bei;j<(i+1)*130*bei;j=j+2)
+					{
+						Log.i("LOCAL", String.valueOf((int)((data[j]&0xff)<<8|(data[j+1]&0xff))));
+						tmp=tmp+(int)((data[j]&0xff)<<8|(data[j+1]&0xff));
+					}
+					Log.i("PJ", String.valueOf(tmp));
+					fpga_data[i]=(int)(tmp/(130*bei));
+					Log.i("JG", String.valueOf(fpga_data[i]));
+					tmp=0;*/
+					if((int)((data[i*130*bei]&0xff)<<8|(data[i*130*bei+1]&0xff))!=0)
+						fpga_data[i]=(int)((data[i*130*bei]&0xff)<<8|(data[i*130*bei+1]&0xff));
+					else
+						fpga_data[i]=(int)((data[(i+1)*130*bei]&0xff)<<8|(data[(i+1)*130*bei+1]&0xff));
+				}
 				draw_cuve(fpga_data);
 				btnDuoci.setEnabled(true);
 				btnStop.setEnabled(true);
@@ -337,7 +387,9 @@ public class MainActivity extends Activity {
 				btnDanci.setEnabled(false);
 				btnXianzhen.setEnabled(false);
 				btnBodong.setEnabled(false);
-				int jf=Integer.valueOf(editJifen.getText().toString());
+				int jf=1000;
+				if(editJifen.getText().toString()!=null)
+					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				duoci_flag=true;				
 			}
@@ -373,7 +425,9 @@ public class MainActivity extends Activity {
 				{
 					btnJiguang.setText(g_ctx.getString(R.string.jiguangg));
 					jiguang_flag=true;
-					int gl=Integer.valueOf(editGonglv.getText().toString());
+					int gl=100;
+					if(editGonglv.getText().toString()!=null)
+						gl=Integer.valueOf(editGonglv.getText().toString());
 					cmd_jiguang_k[2]=(byte) (gl&0xff);
 					cmd_jiguang_k[3]=(byte) ((gl>>8)&0xff);
 					send_cmd(cmd_jiguang_k);
@@ -457,13 +511,16 @@ public class MainActivity extends Activity {
 	}
 	void draw_cuve(int[] cuve)
 	{
-		create_fpga_data(cuve);
+		//create_fpga_data(cuve);
 		yList.clear();
 		for(int j=0;j<30;j++)
         {
         	yList.add((double) cuve[j]);
+        	Log.i("DATA", String.valueOf(cuve[j]));
         }
-        tu.setData(yList, xRawDatas, 73727, 8192);
+		//Log.i("20_prj", "Spi "+byte2HexStr(cuve,5));
+        //tu.setData(yList, xRawDatas, 73727, 8192);
+		tu.setData(yList, xRawDatas, 65536, 4096);
         tu.invalidate();
 	}
 	public void Init()

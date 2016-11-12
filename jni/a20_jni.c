@@ -145,14 +145,14 @@ JNIEXPORT jint JNICALL Java_Battery
 	{
 		// Convert the data
 		level = (data[0] * 256 + data[1]);
-		LOGD("Digital ori value %d",level);
+		//LOGD("Digital ori value %d",level);
 		//if(level > 32767)
 		//{
 		//	level -= 32767;
 		//}
 		level = (level * 15)/10;
 		// Output data to screen
-		LOGD("Digital value of analog input: %d ", level);
+		//LOGD("Digital value of analog input: %d ", level);
 	}
 
 	close(fd);
