@@ -48,7 +48,8 @@ public class MainActivity extends Activity {
 	Context g_ctx=null;
 	ArrayList<String> xRawDatas;
 	LineGraphicView tu;  
-	ArrayList<Double> yList;  
+	ArrayList<Double> yList;
+	int Y_Max=70;
 	byte[] cmd_check_fpga	 =		{(byte) 0xaa,0x55,0x00,0x00,(byte) 0xff,0x00,0x0d};
 	byte[] cmd_e			 =		{(byte) 0xab,(byte)0xff};
 	byte[] cmd_real_data			 =		{(byte) 0xab,0x00};
@@ -58,7 +59,7 @@ public class MainActivity extends Activity {
 	byte[] cmd_switch_to_mian=		{(byte) 0xaa,(byte)0xab};
 	byte[] cmd_jiguang_k	 =		{(byte) 0xaa,0x01,0x00,0x00,0x00,0x00,0x0d};
 	byte[] cmd_jiguang_g	 =		{(byte) 0xaa,0x01,0x00,0x00,0x00,0x00,0x0d};
-	int[] fpga_data=new int[30];
+	int[] fpga_data=new int[Y_Max];
 	private final Handler handler = new Handler();
 	private final Handler handlerUI = new Handler();
 	final Runnable mUpdateResults = new Runnable() {
@@ -69,7 +70,7 @@ public class MainActivity extends Activity {
 			byte[] data = HardwareControl.wrSPI(null);
 			if(!xianzhen_flag)
 				bei=70;
-			for(int i=0;i<30;i++)
+			for(int i=0;i<Y_Max;i++)
 			{
 				/*for(j=i*130*bei;j<(i+1)*130*bei;j=j+2)
 				{
@@ -80,10 +81,10 @@ public class MainActivity extends Activity {
 				fpga_data[i]=(int)(tmp/(130*bei));
 				Log.i("JG", String.valueOf(fpga_data[i]));
 				tmp=0;*/
-				if((int)((data[i*130*bei]&0xff)<<8|(data[i*130*bei+1]&0xff))!=0)
-					fpga_data[i]=(int)((data[i*130*bei]&0xff)<<8|(data[i*130*bei+1]&0xff));
+				if((int)((data[i*50*bei]&0xff)<<8|(data[i*50*bei+1]&0xff))!=0)
+					fpga_data[i]=(int)((data[i*50*bei]&0xff)<<8|(data[i*50*bei+1]&0xff));
 				else
-					fpga_data[i]=(int)((data[(i+1)*130*bei]&0xff)<<8|(data[(i+1)*130*bei+1]&0xff));
+					fpga_data[i]=(int)((data[(i+1)*50*bei]&0xff)<<8|(data[(i+1)*50*bei+1]&0xff));
 			}
 			draw_cuve(fpga_data);
 		}
@@ -353,7 +354,7 @@ public class MainActivity extends Activity {
 					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
 				double tmp=0;
 				int j=0;
-				for(int i=0;i<30;i++)
+				for(int i=0;i<Y_Max;i++)
 				{
 					/*for(j=i*130*bei;j<(i+1)*130*bei;j=j+2)
 					{
@@ -364,10 +365,10 @@ public class MainActivity extends Activity {
 					fpga_data[i]=(int)(tmp/(130*bei));
 					Log.i("JG", String.valueOf(fpga_data[i]));
 					tmp=0;*/
-					if((int)((data[i*130*bei]&0xff)<<8|(data[i*130*bei+1]&0xff))!=0)
-						fpga_data[i]=(int)((data[i*130*bei]&0xff)<<8|(data[i*130*bei+1]&0xff));
+					if((int)((data[i*50*bei]&0xff)<<8|(data[i*50*bei+1]&0xff))!=0)
+						fpga_data[i]=(int)((data[i*50*bei]&0xff)<<8|(data[i*50*bei+1]&0xff));
 					else
-						fpga_data[i]=(int)((data[(i+1)*130*bei]&0xff)<<8|(data[(i+1)*130*bei+1]&0xff));
+						fpga_data[i]=(int)((data[(i+1)*50*bei]&0xff)<<8|(data[(i+1)*50*bei+1]&0xff));
 				}
 				draw_cuve(fpga_data);
 				btnDuoci.setEnabled(true);
@@ -499,21 +500,21 @@ public class MainActivity extends Activity {
 		tu = (LineGraphicView) findViewById(R.id.line_graphic);		  
         yList = new ArrayList<Double>();        
         xRawDatas = new ArrayList<String>();
-        for(int i=0;i<30;i++)
+        for(int i=0;i<Y_Max;i++)
         xRawDatas.add(String.valueOf(i));  
         draw_cuve(fpga_data);
 	}
 	void create_fpga_data(int[] cuve)
 	{
 		Random random=new Random();
-		for(int i=0;i<30;i++)
+		for(int i=0;i<Y_Max;i++)
 			cuve[i]=random.nextInt(73727);
 	}
 	void draw_cuve(int[] cuve)
 	{
 		//create_fpga_data(cuve);
 		yList.clear();
-		for(int j=0;j<30;j++)
+		for(int j=0;j<Y_Max;j++)
         {
         	yList.add((double) cuve[j]);
         	Log.i("DATA", String.valueOf(cuve[j]));
