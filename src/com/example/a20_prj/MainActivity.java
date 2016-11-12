@@ -168,9 +168,9 @@ public class MainActivity extends Activity {
 					else
 						HardwareControl.wrSPI(cmd_switch_to_mian);
 					try {
-						if(jifen_time<3000 && !xianzhen_flag)
-						Thread.sleep(3000);
-						else
+						//if(jifen_time<3000 && !xianzhen_flag)
+						//Thread.sleep(3000);
+						//else
 						Thread.sleep(jifen_time);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
