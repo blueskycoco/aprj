@@ -253,7 +253,7 @@ public class MainActivity extends Activity {
 						Log.i("485",size + "==>"+ret);
 						if((buffer[0]&0xff)==0xaa && (buffer[6]&0xff)==0x0d)
 						{
-							if(((int)(buffer[0]&0xff)+(int)(buffer[1]&0xff)+(int)(buffer[2]&0xff)+(int)(buffer[3]&0xff)*256) 
+							if(((int)(buffer[0]&0xff)+(int)(buffer[1]&0xff)+(int)(buffer[2]&0xff)+(int)(buffer[3]&0xff)) 
 									== ((int)(buffer[4]&0xff)+(int)(buffer[5]&0xff)*256))
 							{
 								switch(buffer[1]&0xff)
@@ -307,7 +307,7 @@ public class MainActivity extends Activity {
 	void send_cmd(byte[] cmd)
 	{
 		try {
-			int tmp=((int)(cmd[0]&0xff)+(int)(cmd[1]&0xff)+(int)(cmd[2]&0xff)+(int)(cmd[3]&0xff)*256);
+			int tmp=((int)(cmd[0]&0xff)+(int)(cmd[1]&0xff)+(int)(cmd[2]&0xff)+(int)(cmd[3]&0xff));
 			cmd[4]=(byte) (tmp&0xff);
 			cmd[5]=(byte) ((tmp>>8)&0xff);
 			if(mOutputStream != null)
