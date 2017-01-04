@@ -163,6 +163,7 @@ public class MainActivity extends Activity {
 			while (!isInterrupted()) {
 				if(duoci_flag)
 				{
+					synchronized (this) {
 					if(xianzhen_flag)
 						HardwareControl.wrSPI(cmd_switch_to_xian);
 					else
@@ -182,6 +183,7 @@ public class MainActivity extends Activity {
 					//else
 					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*70*2));
 					handlerUI.post(mUpdateResults); 
+					}
 				}
 				else
 				{
@@ -332,6 +334,7 @@ public class MainActivity extends Activity {
 				if(editJifen.getText().toString()!=null)
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
+				synchronized (this) {
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
 				else
@@ -371,6 +374,7 @@ public class MainActivity extends Activity {
 						fpga_data[i]=(int)((data[(i+1)*50*bei]&0xff)<<8|(data[(i+1)*50*bei+1]&0xff));
 				}
 				draw_cuve(fpga_data);
+				}
 				btnDuoci.setEnabled(true);
 				btnStop.setEnabled(true);
 				btnXianzhen.setEnabled(true);
