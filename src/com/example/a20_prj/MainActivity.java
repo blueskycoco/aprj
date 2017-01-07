@@ -1,5 +1,8 @@
 package com.example.a20_prj;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,6 +14,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,6 +28,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	protected OutputStream mOutputStream;
@@ -40,6 +45,7 @@ public class MainActivity extends Activity {
 	EditText editJifen;
 	EditText editGonglv;
 	ImageView imageviewdianchi;
+	FileOutputStream outStream=null;
 	static boolean jiguang_flag=false;
 	static boolean xianzhen_flag=true;
 	static boolean bodong_flag=true;
@@ -79,6 +85,14 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			}
 			byte[] data = HardwareControl.wrSPI(null);
+			if(xianzhen_flag)
+				Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
+			try {
+				outStream.write(data);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			if(!xianzhen_flag)
 				bei=70;
 			for(int i=0;i<Y_Max;i++)
@@ -368,11 +382,18 @@ public class MainActivity extends Activity {
 				byte[] data = HardwareControl.wrSPI(null);
 				if(!xianzhen_flag)
 				{
-					//Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2*70));
+					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2*70));
 					bei=70;
 				}
-				//else
-				//	Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
+				else
+					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
+				try {
+					if(outStream != null)
+						outStream.write(data);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				double tmp=0;
 				int j=0;
 				for(int i=0;i<Y_Max;i++)
@@ -610,6 +631,26 @@ public class MainActivity extends Activity {
 		setButtonJiguang();
 		setButtonXianzhen();
 		setButtonBodong();
+		if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+			SimpleDateFormat sDateFormat_time = new SimpleDateFormat("HH:mm:ss");
+			String time = sDateFormat_time.format(new java.util.Date());
+			//texttimedetail.setText(time);
+			SimpleDateFormat sDateFormat_date = new SimpleDateFormat("yyyy-MM-dd");
+			String date = sDateFormat_date.format(new java.util.Date());
+			//textdatedetail.setText(date);
+            Toast.makeText(getApplicationContext(), "cap data file "+Environment.getExternalStorageDirectory()+"/ad_"+date+".dat", 1).show();
+            File file = new File(Environment.getExternalStorageDirectory(),"ad_"+date+".dat");  
+            try {
+				outStream = new FileOutputStream(file);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  
+            //outStream.write(filecontent.getBytes());  
+            //outStream.close();
+        }else{  
+            Toast.makeText(getApplicationContext(), "no SD card found", 1).show();  
+        }  
 		imageviewdianchi = (ImageView) findViewById(R.id.imageviewpower);
 		HardwareControl.init();
 		mInputStream = HardwareControl.getInputStream();
