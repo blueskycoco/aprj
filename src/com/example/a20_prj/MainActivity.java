@@ -67,6 +67,17 @@ public class MainActivity extends Activity {
 			double tmp=0;
 			int j=0;
 			int bei=1;
+			//synchronized (this) {
+			if(xianzhen_flag)
+				HardwareControl.wrSPI(cmd_switch_to_xian);
+			else
+				HardwareControl.wrSPI(cmd_switch_to_mian);
+			try {
+				Thread.sleep(jifen_time);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			byte[] data = HardwareControl.wrSPI(null);
 			if(!xianzhen_flag)
 				bei=70;
@@ -87,6 +98,7 @@ public class MainActivity extends Activity {
 					fpga_data[i]=(int)((data[(i+1)*50*bei]&0xff)<<8|(data[(i+1)*50*bei+1]&0xff));
 			}
 			draw_cuve(fpga_data);
+			//}
 		}
 		};
 	private final Runnable task = new Runnable() {
@@ -163,27 +175,33 @@ public class MainActivity extends Activity {
 			while (!isInterrupted()) {
 				if(duoci_flag)
 				{
-					synchronized (this) {
-					if(xianzhen_flag)
-						HardwareControl.wrSPI(cmd_switch_to_xian);
-					else
-						HardwareControl.wrSPI(cmd_switch_to_mian);
-					try {
+					//synchronized (this) {
+					//if(xianzhen_flag)
+					//	HardwareControl.wrSPI(cmd_switch_to_xian);
+					//else
+					//	HardwareControl.wrSPI(cmd_switch_to_mian);
+					//try {
 						//if(jifen_time<3000 && !xianzhen_flag)
 						//Thread.sleep(3000);
 						//else
-						Thread.sleep(jifen_time);
-					} catch (InterruptedException e) {
+					//	Thread.sleep(jifen_time);
+					//} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					//	e.printStackTrace();
+					//}
 					
 					//if(xianzhen_flag)
 					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2));
 					//else
 					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*70*2));
 					handlerUI.post(mUpdateResults); 
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
+					//}
 				}
 				else
 				{
@@ -350,11 +368,11 @@ public class MainActivity extends Activity {
 				byte[] data = HardwareControl.wrSPI(null);
 				if(!xianzhen_flag)
 				{
-					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2*70));
+					//Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2*70));
 					bei=70;
 				}
-				else
-					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
+				//else
+				//	Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
 				double tmp=0;
 				int j=0;
 				for(int i=0;i<Y_Max;i++)
@@ -521,7 +539,7 @@ public class MainActivity extends Activity {
 		for(int j=0;j<Y_Max;j++)
         {
         	yList.add((double) cuve[j]);
-        	Log.i("DATA", String.valueOf(cuve[j]));
+        	//Log.i("DATA", String.valueOf(cuve[j]));
         }
 		//Log.i("20_prj", "Spi "+byte2HexStr(cuve,5));
         //tu.setData(yList, xRawDatas, 73727, 8192);
