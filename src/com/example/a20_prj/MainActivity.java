@@ -46,6 +46,7 @@ public class MainActivity extends Activity {
 	EditText editGonglv;
 	ImageView imageviewdianchi;
 	FileOutputStream outStream=null;
+	File file;
 	static boolean jiguang_flag=false;
 	static boolean xianzhen_flag=true;
 	static boolean bodong_flag=true;
@@ -85,10 +86,13 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			}
 			byte[] data = HardwareControl.wrSPI(null);
-			if(xianzhen_flag)
-				Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
-			try {
-				outStream.write(data);
+			//if(xianzhen_flag)
+			//	Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
+			try {				
+					outStream = new FileOutputStream(file,true);				
+					outStream.write(data);
+					outStream.flush();
+					outStream.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -208,9 +212,14 @@ public class MainActivity extends Activity {
 					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2));
 					//else
 					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*70*2));
-					handlerUI.post(mUpdateResults); 
+					handlerUI.post(mUpdateResults);
+					int delay;
+					if(xianzhen_flag)
+						delay = 200;
+					else
+						delay = 400;
 					try {
-						Thread.sleep(100);
+						Thread.sleep(delay);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -382,14 +391,16 @@ public class MainActivity extends Activity {
 				byte[] data = HardwareControl.wrSPI(null);
 				if(!xianzhen_flag)
 				{
-					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2*70));
+					//Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2*70));
 					bei=70;
 				}
-				else
-					Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
-				try {
-					if(outStream != null)
-						outStream.write(data);
+				//else
+				//	Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
+				try {				
+					outStream = new FileOutputStream(file,true);				
+					outStream.write(data);
+					outStream.flush();
+					outStream.close();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -631,21 +642,15 @@ public class MainActivity extends Activity {
 		setButtonJiguang();
 		setButtonXianzhen();
 		setButtonBodong();
-		if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+		if(new File("/mnt/extsd0/179_1").exists()){
 			SimpleDateFormat sDateFormat_time = new SimpleDateFormat("HH:mm:ss");
 			String time = sDateFormat_time.format(new java.util.Date());
 			//texttimedetail.setText(time);
 			SimpleDateFormat sDateFormat_date = new SimpleDateFormat("yyyy-MM-dd");
 			String date = sDateFormat_date.format(new java.util.Date());
 			//textdatedetail.setText(date);
-            Toast.makeText(getApplicationContext(), "cap data file "+Environment.getExternalStorageDirectory()+"/ad_"+date+".dat", 1).show();
-            File file = new File(Environment.getExternalStorageDirectory(),"ad_"+date+".dat");  
-            try {
-				outStream = new FileOutputStream(file);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}  
+            Toast.makeText(getApplicationContext(), "cap data file /mnt/extsd0/179_1/ad_"+date+".dat", 1).show();
+            file = new File("/mnt/extsd0/179_1/ad_"+date+".dat");              
             //outStream.write(filecontent.getBytes());  
             //outStream.close();
         }else{  
@@ -661,7 +666,9 @@ public class MainActivity extends Activity {
 		HardwareControl.wrSPI(cmd_real_data);
 		HardwareControl.wrSPI(cmd_switch_to_spi);
 		handler.postDelayed(task, 1000);
-		new TestThread().start();
+		Thread th = new TestThread();
+		th.start();
+		
 		init_draw2();
 	}
 }
