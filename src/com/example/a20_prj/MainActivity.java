@@ -46,7 +46,8 @@ public class MainActivity extends Activity {
 	EditText editGonglv;
 	ImageView imageviewdianchi;
 	FileOutputStream outStream=null;
-	File file;
+	File file=null;
+	String date;
 	static boolean jiguang_flag=false;
 	static boolean xianzhen_flag=true;
 	static boolean bodong_flag=true;
@@ -88,11 +89,18 @@ public class MainActivity extends Activity {
 			byte[] data = HardwareControl.wrSPI(null);
 			//if(xianzhen_flag)
 			//	Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
-			try {				
-					outStream = new FileOutputStream(file,true);				
+			try {		
+				
+				file = new File("/mnt/extsd0");
+				if(file.canWrite())
+				{
+					file = new File("/mnt/extsd0/ad_"+date+".dat");
+					outStream = new FileOutputStream(file,true);
 					outStream.write(data);
 					outStream.flush();
-					outStream.close();
+					outStream.close();				
+				}
+				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -396,11 +404,19 @@ public class MainActivity extends Activity {
 				}
 				//else
 				//	Log.i("20_prj", "Spi "+byte2HexStr(data,2068*2));
-				try {				
-					outStream = new FileOutputStream(file,true);				
-					outStream.write(data);
-					outStream.flush();
-					outStream.close();
+				
+				try {		
+					
+					file = new File("/mnt/extsd0");
+					if(file.canWrite())
+					{
+						file = new File("/mnt/extsd0/ad_"+date+".dat");
+						outStream = new FileOutputStream(file,true);
+						outStream.write(data);
+						outStream.flush();
+						outStream.close();				
+					}
+					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -642,20 +658,20 @@ public class MainActivity extends Activity {
 		setButtonJiguang();
 		setButtonXianzhen();
 		setButtonBodong();
-		if(new File("/mnt/extsd0/179_1").exists()){
-			SimpleDateFormat sDateFormat_time = new SimpleDateFormat("HH:mm:ss");
-			String time = sDateFormat_time.format(new java.util.Date());
+		SimpleDateFormat sDateFormat_date = new SimpleDateFormat("yyyy-MM-dd");
+		date = sDateFormat_date.format(new java.util.Date());
+		//if(new File("/mnt/extsd0/1.txt")!=null){
+			//SimpleDateFormat sDateFormat_time = new SimpleDateFormat("HH:mm:ss");
+			//String time = sDateFormat_time.format(new java.util.Date());
 			//texttimedetail.setText(time);
-			SimpleDateFormat sDateFormat_date = new SimpleDateFormat("yyyy-MM-dd");
-			String date = sDateFormat_date.format(new java.util.Date());
 			//textdatedetail.setText(date);
-            Toast.makeText(getApplicationContext(), "cap data file /mnt/extsd0/179_1/ad_"+date+".dat", 1).show();
-            file = new File("/mnt/extsd0/179_1/ad_"+date+".dat");              
+          //  Toast.makeText(getApplicationContext(), "cap data file /mnt/extsd0/ad_"+date+".dat", 1).show();
+            //file = new File("/mnt/extsd0/ad_"+date+".dat");              
             //outStream.write(filecontent.getBytes());  
             //outStream.close();
-        }else{  
-            Toast.makeText(getApplicationContext(), "no SD card found", 1).show();  
-        }  
+        //}else{  
+          //  Toast.makeText(getApplicationContext(), "no SD card found", 1).show();  
+        //}  
 		imageviewdianchi = (ImageView) findViewById(R.id.imageviewpower);
 		HardwareControl.init();
 		mInputStream = HardwareControl.getInputStream();

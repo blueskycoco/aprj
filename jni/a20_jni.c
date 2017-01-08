@@ -139,7 +139,7 @@ JNIEXPORT jint JNICALL Java_Battery
 	char data[2]={0};
 	if(read(fd, data, 2) != 2)
 	{
-		LOGE("Erorr : Input/output Erorr ");
+		//LOGE("Erorr : Input/output Erorr ");
 	}
 	else 
 	{
