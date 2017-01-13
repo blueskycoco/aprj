@@ -16,6 +16,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -69,9 +71,21 @@ public class MainActivity extends Activity {
 	byte[] cmd_jiguang_g	 =		{(byte) 0xaa,0x01,0x00,0x00,0x00,0x00,0x0d};
 	int[] fpga_data=new int[Y_Max];
 	private final Handler handler = new Handler();
-	private final Handler handlerUI = new Handler();
+	private Handler handlerUI = null;
+	private final Handler handlerMain = new Handler(){
+		public void handleMessage(Message msg) {  
+            // TODO Auto-generated method stub  
+            int tmp = msg.arg1;  
+            System.out.println(Thread.currentThread().getId() + "::::::::::::" + tmp);  
+            if(tmp==1123)
+            	draw_cuve(fpga_data);
+            return ;  
+        }  		
+	};
 	final Runnable mUpdateResults = new Runnable() {
 		public void run() {
+			if(duoci_flag)
+			{		
 			double tmp=0;
 			int j=0;
 			int bei=1;
@@ -123,8 +137,13 @@ public class MainActivity extends Activity {
 				else
 					fpga_data[i]=(int)((data[(i+1)*50*bei]&0xff)<<8|(data[(i+1)*50*bei+1]&0xff));
 			}
-			draw_cuve(fpga_data);
+			//draw_cuve(fpga_data);
+			Message msg = handlerMain.obtainMessage();  
+            msg.arg1 = 1123;  
+            handlerMain.sendMessage(msg);  
 			}
+			}
+			handlerUI.postDelayed(this,100);
 		}
 		};
 	private final Runnable task = new Runnable() {
@@ -201,38 +220,7 @@ public class MainActivity extends Activity {
 			while (!isInterrupted()) {
 				if(duoci_flag)
 				{
-					//synchronized (this) {
-					//if(xianzhen_flag)
-					//	HardwareControl.wrSPI(cmd_switch_to_xian);
-					//else
-					//	HardwareControl.wrSPI(cmd_switch_to_mian);
-					//try {
-						//if(jifen_time<3000 && !xianzhen_flag)
-						//Thread.sleep(3000);
-						//else
-					//	Thread.sleep(jifen_time);
-					//} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-					//	e.printStackTrace();
-					//}
-					
-					//if(xianzhen_flag)
-					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*2));
-					//else
-					//	Log.i("20_prj", "Spi "+byte2HexStr(HardwareControl.wrSPI(null),2068*70*2));
-					handlerUI.post(mUpdateResults);
-					int delay;
-					if(xianzhen_flag)
-						delay = 200;
-					else
-						delay = 400;
-					try {
-						Thread.sleep(delay);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					//}
+					handlerUI.postDelayed(mUpdateResults,1000);
 				}
 				else
 				{
@@ -582,7 +570,7 @@ public class MainActivity extends Activity {
 	}
 	void draw_cuve(int[] cuve)
 	{
-		//create_fpga_data(cuve);
+		//create_fpga_data(cuve);		
 		yList.clear();
 		for(int j=0;j<Y_Max;j++)
         {
@@ -592,7 +580,7 @@ public class MainActivity extends Activity {
 		//Log.i("20_prj", "Spi "+byte2HexStr(cuve,5));
         //tu.setData(yList, xRawDatas, 73727, 8192);
 		tu.setData(yList, xRawDatas, 65536, 4096);
-        tu.invalidate();
+        tu.invalidate();        
 	}
 	public void Init()
 	{
@@ -608,50 +596,7 @@ public class MainActivity extends Activity {
 		btnBodong =(Button)findViewById(R.id.Bbodong);
 		editJifen=(EditText)findViewById(R.id.Tjifentime);
 		editGonglv=(EditText)findViewById(R.id.Tgonglv);
-		/*
-		editJifen.addTextChangedListener(new TextWatcher() {
-			public void afterTextChanged(Editable s) {//输入数据之后监听
-
-				Log.i("20_prj", "Send cmd jifen");
-				cmd_jifen[2]=(byte) (Integer.parseInt(editJifen.getText().toString())&0xff);
-				cmd_jifen[3]=(byte) ((Integer.parseInt(editJifen.getText().toString())>>8)&0xff);
-				send_cmd(cmd_jifen);
-				}
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				// TODO Auto-generated method stub
-			}
-		 	}
-				);
-		editGonglv=(EditText)findViewById(R.id.Tgonglv);
-		editGonglv.addTextChangedListener(new TextWatcher() {
-			public void afterTextChanged(Editable s) {//输入数据之后监听
-
-				Log.i("20_prj", "Send cmd gonglv");
-				cmd_gonglv[2]=(byte) (Integer.parseInt(editGonglv.getText().toString())&0xff);
-				cmd_gonglv[3]=(byte) ((Integer.parseInt(editGonglv.getText().toString())>>8)&0xff);
-				send_cmd(cmd_gonglv);
-				}
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				// TODO Auto-generated method stub
-				}
-		 	}
-				);*/
+		
 		setButtonDanci();
 		setButtonDuoci();
 		setButtonStop();
@@ -660,18 +605,7 @@ public class MainActivity extends Activity {
 		setButtonBodong();
 		SimpleDateFormat sDateFormat_date = new SimpleDateFormat("yyyy-MM-dd");
 		date = sDateFormat_date.format(new java.util.Date());
-		//if(new File("/mnt/extsd0/1.txt")!=null){
-			//SimpleDateFormat sDateFormat_time = new SimpleDateFormat("HH:mm:ss");
-			//String time = sDateFormat_time.format(new java.util.Date());
-			//texttimedetail.setText(time);
-			//textdatedetail.setText(date);
-          //  Toast.makeText(getApplicationContext(), "cap data file /mnt/extsd0/ad_"+date+".dat", 1).show();
-            //file = new File("/mnt/extsd0/ad_"+date+".dat");              
-            //outStream.write(filecontent.getBytes());  
-            //outStream.close();
-        //}else{  
-          //  Toast.makeText(getApplicationContext(), "no SD card found", 1).show();  
-        //}  
+		
 		imageviewdianchi = (ImageView) findViewById(R.id.imageviewpower);
 		HardwareControl.init();
 		mInputStream = HardwareControl.getInputStream();
@@ -682,9 +616,20 @@ public class MainActivity extends Activity {
 		HardwareControl.wrSPI(cmd_real_data);
 		HardwareControl.wrSPI(cmd_switch_to_spi);
 		handler.postDelayed(task, 1000);
-		Thread th = new TestThread();
-		th.start();
-		
+		//Thread th = new TestThread();
+		//th.start();
+		HandlerThread ht = new HandlerThread("MyThread");  
+        ht.start();  
+        handlerUI = new Handler(ht.getLooper(), new Handler.Callback() {  
+            @Override  
+            public boolean handleMessage(Message msg) {  
+                // TODO Auto-generated method stub  
+                int tmp = msg.arg1;  
+                System.out.println(Thread.currentThread().getId() + "ccxcxc" + tmp);  
+                return false;  
+            }  
+        });  
+        handlerUI.post(mUpdateResults);
 		init_draw2();
 	}
 }
