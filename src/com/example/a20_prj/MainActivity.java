@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
 			double tmp=0;
 			int j=0;
 			int bei=1;
-			//synchronized (this) {
+			synchronized (this) {
 			if(xianzhen_flag)
 				HardwareControl.wrSPI(cmd_switch_to_xian);
 			else
@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
 					fpga_data[i]=(int)((data[(i+1)*50*bei]&0xff)<<8|(data[(i+1)*50*bei+1]&0xff));
 			}
 			draw_cuve(fpga_data);
-			//}
+			}
 		}
 		};
 	private final Runnable task = new Runnable() {
