@@ -212,28 +212,7 @@ public class MainActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	private class TestThread extends Thread {
-
-		@Override
-		public void run() {
-			super.run();
-			while (!isInterrupted()) {
-				if(duoci_flag)
-				{
-					handlerUI.postDelayed(mUpdateResults,1000);
-				}
-				else
-				{
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	}
+	
 	private class ReadThread extends Thread {
 
 		@Override
@@ -616,8 +595,6 @@ public class MainActivity extends Activity {
 		HardwareControl.wrSPI(cmd_real_data);
 		HardwareControl.wrSPI(cmd_switch_to_spi);
 		handler.postDelayed(task, 1000);
-		//Thread th = new TestThread();
-		//th.start();
 		HandlerThread ht = new HandlerThread("MyThread");  
         ht.start();  
         handlerUI = new Handler(ht.getLooper(), new Handler.Callback() {  
