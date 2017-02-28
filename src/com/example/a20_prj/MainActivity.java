@@ -53,6 +53,7 @@ public class MainActivity extends Activity {
 	static boolean bodong_flag=true;
 	static boolean duoci_flag=false;
 	int jifen_time=100;
+	int bak_gl=10000;
 	Context g_ctx=null;
 	ArrayList<String> xRawDatas;
 	LineGraphicView tu;  
@@ -486,6 +487,17 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("20_prj","btnJiguang");
+				int gl=100;
+				if(editGonglv.getText().toString()!=null)
+				{
+					gl=Integer.valueOf(editGonglv.getText().toString());
+					if (bak_gl != gl)
+					{
+						jiguang_flag=!jiguang_flag;
+						bak_gl = gl;
+					}
+				}
+				
 				if(jiguang_flag)
 				{
 					btnJiguang.setText(g_ctx.getString(R.string.jiguangk));
@@ -496,9 +508,6 @@ public class MainActivity extends Activity {
 				{
 					btnJiguang.setText(g_ctx.getString(R.string.jiguangg));
 					jiguang_flag=true;
-					int gl=100;
-					if(editGonglv.getText().toString()!=null)
-						gl=Integer.valueOf(editGonglv.getText().toString());
 					cmd_jiguang_k[2]=(byte) (gl&0xff);
 					cmd_jiguang_k[3]=(byte) ((gl>>8)&0xff);
 					send_cmd(cmd_jiguang_k);
