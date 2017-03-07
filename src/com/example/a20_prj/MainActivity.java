@@ -358,6 +358,7 @@ public class MainActivity extends Activity {
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				synchronized (this) {
+				jiguang_ctl(true);
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
 				else
@@ -448,6 +449,7 @@ public class MainActivity extends Activity {
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				ignore=true;
+				jiguang_ctl(true);
 				duoci_flag=true;				
 			}
 		});
@@ -463,8 +465,32 @@ public class MainActivity extends Activity {
 				btnDanci.setEnabled(true);
 				btnXianzhen.setEnabled(true);
 				btnBodong.setEnabled(true);
+				jiguang_ctl(false);
 			}
 		});
+	}
+	void jiguang_ctl(boolean on)
+	{
+		int gl=100;
+		if(editGonglv.getText().toString()!=null)
+		{
+			gl=Integer.valueOf(editGonglv.getText().toString());
+		}
+		
+		if(on)
+		{
+			btnJiguang.setText(g_ctx.getString(R.string.jiguangk));
+			jiguang_flag=false;
+			send_cmd(cmd_jiguang_g);
+		}
+		else
+		{
+			btnJiguang.setText(g_ctx.getString(R.string.jiguangg));
+			jiguang_flag=true;
+			cmd_jiguang_k[2]=(byte) (gl&0xff);
+			cmd_jiguang_k[3]=(byte) ((gl>>8)&0xff);
+			send_cmd(cmd_jiguang_k);
+		}		
 	}
 	public void setButtonJiguang() {
 		btnJiguang.setOnClickListener(new OnClickListener() {
