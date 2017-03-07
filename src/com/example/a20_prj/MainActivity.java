@@ -352,6 +352,7 @@ public class MainActivity extends Activity {
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				synchronized (this) {
+				HardwareControl.wrSPI(null);
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
 				else
