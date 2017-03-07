@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
 	static boolean xianzhen_flag=true;
 	static boolean bodong_flag=true;
 	static boolean duoci_flag=false;
+	static boolean ignore = true;
 	int jifen_time=100;
 	int bak_gl=10000;
 	Context g_ctx=null;
@@ -79,7 +80,12 @@ public class MainActivity extends Activity {
             int tmp = msg.arg1;  
             System.out.println(Thread.currentThread().getId() + "::::::::::::" + tmp);  
             if(tmp==1123)
-            	draw_cuve(fpga_data);
+    			if(ignore)
+    			{
+    				ignore=false;
+    			}
+    			else
+    				draw_cuve(fpga_data);
             return ;  
         }  		
 	};
@@ -352,6 +358,16 @@ public class MainActivity extends Activity {
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				synchronized (this) {
+				if(xianzhen_flag)
+					HardwareControl.wrSPI(cmd_switch_to_xian);
+				else
+					HardwareControl.wrSPI(cmd_switch_to_mian);
+				try {
+					Thread.sleep(jifen_time);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				HardwareControl.wrSPI(null);
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
@@ -431,6 +447,7 @@ public class MainActivity extends Activity {
 				if(editJifen.getText().toString()!=null)
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
+				ignore=true;
 				duoci_flag=true;				
 			}
 		});
