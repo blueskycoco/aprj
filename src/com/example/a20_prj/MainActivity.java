@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
 	FileOutputStream outStream=null;
 	File file=null;
 	String date;
+	int ignore_times=0;
 	static boolean jiguang_flag=false;
 	static boolean xianzhen_flag=true;
 	static boolean bodong_flag=true;
@@ -359,6 +360,11 @@ public class MainActivity extends Activity {
 				jifen_time=jf;
 				synchronized (this) {
 				jiguang_ctl(true);
+				if (xianzhen_flag)
+					ignore_times = 1;
+				else
+					ignore_times = 3;
+				for (int i=0;i<ignore_times;i++) {
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
 				else
@@ -370,6 +376,7 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 				HardwareControl.wrSPI(null);
+				}
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
 				else
