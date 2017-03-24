@@ -80,12 +80,12 @@ public class MainActivity extends Activity {
             // TODO Auto-generated method stub  
             int tmp = msg.arg1;  
             System.out.println(Thread.currentThread().getId() + "::::::::::::" + tmp);  
-            if(tmp==1123)
-    			if(ignore)
-    			{
-    				ignore=false;
-    			}
-    			else
+            //if(tmp==1123)
+    		//	if(ignore)
+    		//	{
+    		//		ignore=false;
+    		//	}
+    		//	else
     				draw_cuve(fpga_data);
             return ;  
         }  		
@@ -98,6 +98,24 @@ public class MainActivity extends Activity {
 			int j=0;
 			int bei=1;
 			synchronized (this) {
+				if (xianzhen_flag)
+					ignore_times = 1;
+				else
+					ignore_times = 3;
+				for (int i=0;i<ignore_times;i++) {
+				if(xianzhen_flag)
+					HardwareControl.wrSPI(cmd_switch_to_xian);
+				else
+					HardwareControl.wrSPI(cmd_switch_to_mian);
+				try {
+					Thread.sleep(jifen_time);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				HardwareControl.wrSPI(null);
+				}
+				jiguang_ctl(false);
 			if(xianzhen_flag)
 				HardwareControl.wrSPI(cmd_switch_to_xian);
 			else
@@ -149,6 +167,7 @@ public class MainActivity extends Activity {
 			Message msg = handlerMain.obtainMessage();  
             msg.arg1 = 1123;  
             handlerMain.sendMessage(msg);  
+            jiguang_ctl(true);
 			}
 			}
 			handlerUI.postDelayed(this,100);
@@ -359,7 +378,6 @@ public class MainActivity extends Activity {
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				synchronized (this) {
-				jiguang_ctl(true);
 				if (xianzhen_flag)
 					ignore_times = 1;
 				else
@@ -377,6 +395,8 @@ public class MainActivity extends Activity {
 				}
 				HardwareControl.wrSPI(null);
 				}
+
+				jiguang_ctl(false);
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
 				else
@@ -434,6 +454,7 @@ public class MainActivity extends Activity {
 				}
 				draw_cuve(fpga_data);
 				}
+				jiguang_ctl(true);
 				btnDuoci.setEnabled(true);
 				btnStop.setEnabled(true);
 				btnXianzhen.setEnabled(true);
@@ -456,7 +477,7 @@ public class MainActivity extends Activity {
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				ignore=true;
-				jiguang_ctl(true);
+				jiguang_ctl(false);
 				duoci_flag=true;				
 			}
 		});
@@ -472,7 +493,7 @@ public class MainActivity extends Activity {
 				btnDanci.setEnabled(true);
 				btnXianzhen.setEnabled(true);
 				btnBodong.setEnabled(true);
-				jiguang_ctl(false);
+				jiguang_ctl(true);
 			}
 		});
 	}
