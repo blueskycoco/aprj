@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
 	static boolean xianzhen_flag=true;
 	static boolean bodong_flag=true;
 	static boolean duoci_flag=false;
-	static boolean ignore = true;
+	static int ignore = 0;
 	int jifen_time=100;
 	int bak_gl=10000;
 	Context g_ctx=null;
@@ -80,13 +80,16 @@ public class MainActivity extends Activity {
             // TODO Auto-generated method stub  
             int tmp = msg.arg1;  
             System.out.println(Thread.currentThread().getId() + "::::::::::::" + tmp);  
-            //if(tmp==1123)
-    		//	if(ignore)
-    		//	{
-    		//		ignore=false;
-    		//	}
-    		//	else
+            if(tmp==1123)
+    			if(ignore<ignore_times)
+    			{
+    				ignore++;
+    			}
+    			else
+    			{
+    				ignore = 0;
     				draw_cuve(fpga_data);
+    			}
             return ;  
         }  		
 	};
@@ -102,7 +105,7 @@ public class MainActivity extends Activity {
 					ignore_times = 1;
 				else
 					ignore_times = 3;
-				for (int i=0;i<ignore_times;i++) {
+				/*for (int i=0;i<ignore_times;i++) {
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
 				else
@@ -114,7 +117,7 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 				HardwareControl.wrSPI(null);
-				}
+				}*/
 				jiguang_ctl(false);
 			if(xianzhen_flag)
 				HardwareControl.wrSPI(cmd_switch_to_xian);
@@ -476,7 +479,7 @@ public class MainActivity extends Activity {
 				if(editJifen.getText().toString()!=null)
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
-				ignore=true;
+				ignore=0;
 				jiguang_ctl(false);
 				duoci_flag=true;				
 			}
