@@ -81,7 +81,8 @@ public class MainActivity extends Activity {
             int tmp = msg.arg1;  
             System.out.println(Thread.currentThread().getId() + "::::::::::::" + tmp);  
             if(tmp==1123)
-    			if(ignore<ignore_times)
+            {
+            	if(ignore<ignore_times)            
     			{
     				ignore++;
     			}
@@ -90,6 +91,21 @@ public class MainActivity extends Activity {
     				ignore = 0;
     				draw_cuve(fpga_data);
     			}
+			}
+            return ;  
+        }  		
+	};
+	private final Handler handlerJiguang = new Handler(){
+		public void handleMessage(Message msg) {  
+            // TODO Auto-generated method stub  
+            int tmp = msg.arg1;  
+            System.out.println(Thread.currentThread().getId() + "<<<<<" + tmp);  
+            if(tmp==2233)
+            {
+            	jiguang_ctl(false);
+			}
+            else
+            	jiguang_ctl(true);
             return ;  
         }  		
 	};
@@ -102,23 +118,13 @@ public class MainActivity extends Activity {
 			int bei=1;
 			synchronized (this) {
 				if (xianzhen_flag)
-					ignore_times = 1;
+					ignore_times = 2;
 				else
 					ignore_times = 3;
-				/*for (int i=0;i<ignore_times;i++) {
-				if(xianzhen_flag)
-					HardwareControl.wrSPI(cmd_switch_to_xian);
-				else
-					HardwareControl.wrSPI(cmd_switch_to_mian);
-				try {
-					Thread.sleep(jifen_time);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				HardwareControl.wrSPI(null);
-				}*/
-				jiguang_ctl(false);
+				//jiguang_ctl(false);
+				Message msg = handlerJiguang.obtainMessage();
+	            msg.arg1=2233;
+	            handlerJiguang.sendMessage(msg);
 			if(xianzhen_flag)
 				HardwareControl.wrSPI(cmd_switch_to_xian);
 			else
@@ -167,10 +173,13 @@ public class MainActivity extends Activity {
 					fpga_data[i]=(int)((data[(i+1)*50*bei]&0xff)<<8|(data[(i+1)*50*bei+1]&0xff));
 			}
 			//draw_cuve(fpga_data);
-			Message msg = handlerMain.obtainMessage();  
+			msg = handlerMain.obtainMessage();  
             msg.arg1 = 1123;  
-            handlerMain.sendMessage(msg);  
-            jiguang_ctl(true);
+            handlerMain.sendMessage(msg);
+            msg = handlerJiguang.obtainMessage();
+            msg.arg1=2323;
+            handlerJiguang.sendMessage(msg);
+            //jiguang_ctl(true);
 			}
 			}
 			handlerUI.postDelayed(this,100);
@@ -381,8 +390,9 @@ public class MainActivity extends Activity {
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				synchronized (this) {
+					jiguang_ctl(false);
 				if (xianzhen_flag)
-					ignore_times = 1;
+					ignore_times = 2;
 				else
 					ignore_times = 3;
 				for (int i=0;i<ignore_times;i++) {
@@ -399,7 +409,6 @@ public class MainActivity extends Activity {
 				HardwareControl.wrSPI(null);
 				}
 
-				jiguang_ctl(false);
 				if(xianzhen_flag)
 					HardwareControl.wrSPI(cmd_switch_to_xian);
 				else
