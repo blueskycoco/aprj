@@ -95,20 +95,7 @@ public class MainActivity extends Activity {
             return ;  
         }  		
 	};
-	private final Handler handlerJiguang = new Handler(){
-		public void handleMessage(Message msg) {  
-            // TODO Auto-generated method stub  
-            int tmp = msg.arg1;  
-            System.out.println(Thread.currentThread().getId() + "<<<<<" + tmp);  
-            if(tmp==2233)
-            {
-            	jiguang_ctl(false);
-			}
-            else
-            	jiguang_ctl(true);
-            return ;  
-        }  		
-	};
+	
 	final Runnable mUpdateResults = new Runnable() {
 		public void run() {
 			if(duoci_flag)
@@ -122,9 +109,6 @@ public class MainActivity extends Activity {
 				else
 					ignore_times = 3;
 				//jiguang_ctl(false);
-				Message msg = handlerJiguang.obtainMessage();
-	            msg.arg1=2233;
-	            handlerJiguang.sendMessage(msg);
 			if(xianzhen_flag)
 				HardwareControl.wrSPI(cmd_switch_to_xian);
 			else
@@ -173,12 +157,9 @@ public class MainActivity extends Activity {
 					fpga_data[i]=(int)((data[(i+1)*50*bei]&0xff)<<8|(data[(i+1)*50*bei+1]&0xff));
 			}
 			//draw_cuve(fpga_data);
-			msg = handlerMain.obtainMessage();  
+			Message msg = handlerMain.obtainMessage();  
             msg.arg1 = 1123;  
             handlerMain.sendMessage(msg);
-            msg = handlerJiguang.obtainMessage();
-            msg.arg1=2323;
-            handlerJiguang.sendMessage(msg);
             //jiguang_ctl(true);
 			}
 			}
