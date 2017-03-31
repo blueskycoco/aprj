@@ -371,7 +371,7 @@ public class MainActivity extends Activity {
 					jf=Integer.valueOf(editJifen.getText().toString());
 				jifen_time=jf;
 				synchronized (this) {
-					jiguang_ctl(false);
+					//jiguang_ctl(false);
 				if (xianzhen_flag)
 					ignore_times = 2;
 				else
@@ -447,7 +447,7 @@ public class MainActivity extends Activity {
 				}
 				draw_cuve(fpga_data);
 				}
-				jiguang_ctl(true);
+				//jiguang_ctl(true);
 				btnDuoci.setEnabled(true);
 				btnStop.setEnabled(true);
 				btnXianzhen.setEnabled(true);
